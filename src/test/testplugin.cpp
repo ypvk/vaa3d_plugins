@@ -17,13 +17,11 @@ void TestPlugin::domenu(const QString & menu_name, V3DPluginCallback2 & callback
 {
   if (menu_name == tr("test1"))
   {
-    //v3d_msg(tr("in test1"));
-    std::cout << "1111" << endl;
+    v3d_msg(tr("in test1"));
   }
   else if (menu_name == tr("test2"))
   {
-    //v3d_msg(tr("in test2"));
-    std::cout << "222" << endl;
+    v3d_msg(tr("in test2"));
   }
 }
 bool TestPlugin::dofunc(const QString & func_name, const V3DPluginArgList & input, V3DPluginArgList & output, V3DPluginCallback2 & v3d, QWidget* parent)
