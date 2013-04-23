@@ -23,9 +23,12 @@ FIND_LIBRARY(TIFF_LIBRARY
 	NAMES libv3ddiff.a v3dtiff
 	PATHS ${V3DMAINDIR}/common_lib/lib
 	)
-
-MESSAGE(${TIFF_LIBRARY})
-FIND_PACKAGE(TIFF)
+FIND_LIBRARY(LIB_MYLIB_LIBRARY
+	NAMES libmylib_tiff.a mylib_tiff
+	PATH ${V3DMAINDIR}/common_lib/src_packages/mylib_tiff
+	)
+#MESSAGE(${TIFF_LIBRARY})
+#FIND_PACKAGE(TIFF)
 SET(LIBRARY_OUTPUT_PATH
 	"${PROJECT_BINARY_DIR}/bin"
 	CACHE INTERNAL "Output directory for shared libraries")
