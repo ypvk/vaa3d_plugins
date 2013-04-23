@@ -1,0 +1,9 @@
+SET(PLUGIN_SOURCES 
+	neuronplugin.cpp
+	dialog.cpp
+	)
+SET(PLUGIN_HEADERS 
+	neuronplugin.h
+	dialog.h
+	)
+CONFIGE_V3D_PLUGIN(neuronplugin)
