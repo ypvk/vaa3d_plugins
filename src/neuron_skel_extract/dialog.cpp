@@ -75,6 +75,7 @@ void Dialog::onPushButtonClicked()
               image->getYDim(),
               image->getZDim()
               );
+          thin->run();
           p4DImage->setData(
               (unsigned char*)thin->getData(),
               thin->getXDim(),
