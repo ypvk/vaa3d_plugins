@@ -61,81 +61,81 @@ void Dialog::onPushButtonClicked()
   QString method = this->m_methodList->currentText();
   Image4DSimple* image = m_callback->getImage(m_callback->getImageWindowList()[0]);
   unsigned char* raw_data = image->getRawDataAtChannel(channel);
-  if (method == "thin")
+  if (method == "Thin")
   {
+    Image4DSimple * p4DImage = new Image4DSimple();
+    v3dhandle newwin;
     switch(image->getDatatype())
     {
       case V3D_UINT8:
-        Thin<unsigned char>* thin = new Thin<unsigned char>(
-            raw_data, 
-            image->getXDim(),
-            image->getYDim(),
-            image->getZDim(),
-            );
-        Image4DSimple * p4DImage = new Image4DSimple();
-        p4DImage->setData(
-            (unsigned char*)thin->getData,
-            thin->getXDim(),
-            thin->getYDim(),
-            thin->getZDim(),
-            1,
-            image->getDatatype()
-            );
-        v3dhandle newwin;
-        newwin = this->m_callback->newImageWindow();
-        this->m_callback->setImage(newwin, p4DImage);
-        this->m_callback->setImageName(newwin, tr("Thin output"));
-        this->m_callback->updateImageWindow(newwin);
-        delete thin;
-        break;
+        {
+          Thin<unsigned char>* thin = new Thin<unsigned char>(
+              raw_data, 
+              image->getXDim(),
+              image->getYDim(),
+              image->getZDim()
+              );
+          p4DImage->setData(
+              (unsigned char*)thin->getData(),
+              thin->getXDim(),
+              thin->getYDim(),
+              thin->getZDim(),
+              1,
+              image->getDatatype()
+              );
+          newwin = this->m_callback->newImageWindow();
+          this->m_callback->setImage(newwin, p4DImage);
+          this->m_callback->setImageName(newwin, tr("Thin output"));
+          this->m_callback->updateImageWindow(newwin);
+          delete thin;
+          break;
+        }
       case V3D_UINT16:
-        Thin<unsigned short>* thin = new Thin<unsigned short>(
-            raw_data, 
-            image->getXDim(),
-            image->getYDim(),
-            image->getZDim(),
-            );
-        Image4DSimple * p4DImage = new Image4DSimple();
-        p4DImage->setData(
-            (unsigned char*)thin->getData,
-            thin->getXDim(),
-            thin->getYDim(),
-            thin->getZDim(),
-            1,
-            image->getDatatype()
-            );
-        v3dhandle newwin;
-        newwin = this->m_callback->newImageWindow();
-        this->m_callback->setImage(newwin, p4DImage);
-        this->m_callback->setImageName(newwin, tr("Thin output"));
-        this->m_callback->updateImageWindow(newwin);
-        delete thin;
-        break;
-
+        {
+          Thin<unsigned short>* thin = new Thin<unsigned short>(
+              raw_data, 
+              image->getXDim(),
+              image->getYDim(),
+              image->getZDim()
+              );
+          p4DImage->setData(
+              (unsigned char*)thin->getData(),
+              thin->getXDim(),
+              thin->getYDim(),
+              thin->getZDim(),
+              1,
+              image->getDatatype()
+              );
+          newwin = this->m_callback->newImageWindow();
+          this->m_callback->setImage(newwin, p4DImage);
+          this->m_callback->setImageName(newwin, tr("Thin output"));
+          this->m_callback->updateImageWindow(newwin);
+          delete thin;
+          break;
+        }
       case V3D_FLOAT32:
-        Thin<float>* thin = new Thin<float>(
-            raw_data, 
-            image->getXDim(),
-            image->getYDim(),
-            image->getZDim(),
-            );
-        Image4DSimple * p4DImage = new Image4DSimple();
-        p4DImage->setData(
-            (unsigned char*)thin->getData,
-            thin->getXDim(),
-            thin->getYDim(),
-            thin->getZDim(),
-            1,
-            image->getDatatype()
-            );
-        v3dhandle newwin;
-        newwin = this->m_callback->newImageWindow();
-        this->m_callback->setImage(newwin, p4DImage);
-        this->m_callback->setImageName(newwin, tr("Thin output"));
-        this->m_callback->updateImageWindow(newwin);
-        delete thin;
-        break;
-
+        {
+          Thin<float>* thin = new Thin<float>(
+              raw_data, 
+              image->getXDim(),
+              image->getYDim(),
+              image->getZDim()
+              );
+          p4DImage->setData(
+              (unsigned char*)thin->getData(),
+              thin->getXDim(),
+              thin->getYDim(),
+              thin->getZDim(),
+              1,
+              image->getDatatype()
+              );
+          newwin = this->m_callback->newImageWindow();
+          this->m_callback->setImage(newwin, p4DImage);
+          this->m_callback->setImageName(newwin, tr("Thin output"));
+          this->m_callback->updateImageWindow(newwin);
+          delete thin;
+          break;
+        }
       default:
         QMessageBox::information(this, tr("Error"), tr("Error deal with the image type"));
     }

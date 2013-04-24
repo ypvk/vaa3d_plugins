@@ -19,7 +19,7 @@ class Thin
     T* data;
     V3DLONG size_x;
     V3DLONG size_y;
-    V3DLoNG size_z;
-}
-
+    V3DLONG size_z;
+};
+#include "thin.cpp"
 #endif

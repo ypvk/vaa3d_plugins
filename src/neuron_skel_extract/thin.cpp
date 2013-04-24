@@ -1,8 +1,12 @@
-#include "thin.h"
-#include <cstdio>
-#include <cstring>
+#ifndef THIN_CPP
+#define THIN_CPP
 
-Thin::Thin(unsigned char* data_org, V3DLONG size_x, V3DLONG size_y, V3DLONG size_z)
+#include "dialog.h"
+#include <stdio.h>
+#include <string.h>
+
+template <class T>
+Thin<T>::Thin(unsigned char* data_org, V3DLONG size_x, V3DLONG size_y, V3DLONG size_z)
 {
   T* data_tmp = (T*)data_org;
   this->size_x = size_x;
@@ -24,42 +28,51 @@ Thin::Thin(unsigned char* data_org, V3DLONG size_x, V3DLONG size_y, V3DLONG size
       {
           if(data_org[i + j*size_x + k*size_x*size_y] > 0)
           {
-            this->data[i + j*size_x + k*size_x*size_y] = 255
+            this->data[i + j*size_x + k*size_x*size_y] = 255;
           }
       }
 }
-Thin::~Thin()
+template <class T>
+Thin<T>::~Thin()
 {
 }
 
-void Thin::setXDim(V3DLONG size_x)
+template <class T>
+void Thin<T>::setXDim(V3DLONG size_x)
 {
   this->size_x = size_x;
 }
 
-void Thin::setYDim(V3DLONG size_y)
+template <class T>
+void Thin<T>::setYDim(V3DLONG size_y)
 {
   this->size_y = size_y;
 }
 
-void Thin::setZDim(V3DLONG size_z)
+template <class T>
+void Thin<T>::setZDim(V3DLONG size_z)
 {
   this->size_z = size_z;
 }
 
-V3DLONG Thin::getXDim() const 
+template <class T>
+V3DLONG Thin<T>::getXDim() const 
 {
   return this->size_x;
 }
-V3DLONG Thin::getYDim() const
+template <class T>
+V3DLONG Thin<T>::getYDim() const
 {
   return this->size_y;
 }
-V3DLONG Thin::getZDim() const
+template <class T>
+V3DLONG Thin<T>::getZDim() const
 {
   return this->size_z;
 }
-T* Thin::getData() const
+template <class T>
+T* Thin<T>::getData() const
 {
   return this->data;
 }
+#endif
