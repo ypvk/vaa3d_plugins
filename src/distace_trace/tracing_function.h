@@ -50,11 +50,17 @@ class NeuronTracing
         float zthickness, V3DLONG bx0, V3DLONG by0, V3DLONG bz0, V3DLONG bx1,
         V3DLONG by1, V3DLONG bz1, float x0, float y0, float, z0, int n_end_nodes, 
         float* x1, float* y1, float* z1, const Parameters& parameters);
-    ~NeuronTracig();
+    ~NeuronTracing();
     const char* find_shortest_path(); 
     vector< vector<V_NeuronSWC_unit> > & get_cordinate() const;
   private:
     void print_basic_info();
+    bool validate_region();
+    bool validate_coordinate(float x0, float y0, float z0);
+    bool validate_index(V3DLONG index, V3DLONG n_nodes);
+    V3DLONG node_from_xyz(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
+    V3DLONG node_from_xyz(float x, float y, float z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
+    void node_to_xyz(V3DLONG node, float& x, float& y, float& z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
   private:
     //image base info
     unsigned char* data;
