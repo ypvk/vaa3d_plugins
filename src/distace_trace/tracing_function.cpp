@@ -212,5 +212,5 @@ const char* NeuronTracing::find_shortest_path()
   
   double i_threshold = 0;
   if(background_select) i_threshold = (i_ave < i_std) ? i_ave : (i_ave + i_std) * 0.5;
-  
+   
 }
