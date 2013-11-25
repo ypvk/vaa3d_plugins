@@ -46,13 +46,15 @@ struct Parameters
 class NeuronTracing
 {
   public:
-    NeuronTracing(unsigned char* data, int dimx, int dimy, int dimz, float zthickness,\
-        V3DLONG bx0, V3DLONG by0, V3DLONG bz0, V3DLONG bx1, V3DLONG by1, V3DLONG bz1,\
-        float x0, float y0, float, z0, int n_end_nodes, float* x1, float* y1, float* z1,
-        const Parameters& parameters);
+    NeuronTracing(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz, 
+        float zthickness, V3DLONG bx0, V3DLONG by0, V3DLONG bz0, V3DLONG bx1,
+        V3DLONG by1, V3DLONG bz1, float x0, float y0, float, z0, int n_end_nodes, 
+        float* x1, float* y1, float* z1, const Parameters& parameters);
     ~NeuronTracig();
     const char* find_shortest_path(); 
     vector< vector<V_NeuronSWC_unit> > & get_cordinate() const;
+  private:
+    void print_basic_info();
   private:
     //image base info
     unsigned char* data;
