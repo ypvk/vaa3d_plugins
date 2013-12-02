@@ -307,5 +307,5 @@ const char* NeuronTracing::find_shortest_path()
   printf("=================================================\n");
   
   //now use shottest path algorithm to get the result  
-
+  //dijkstra algorithm to get the shortest path
 }
