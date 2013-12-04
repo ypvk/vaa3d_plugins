@@ -1,9 +1,11 @@
 #include "tracing_function.h"
 #include "imageutils.h"
+#include "dijkstra.h"
 #include <iostream>
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <map>
 
 using namespace std;
 
@@ -226,11 +228,13 @@ const char* NeuronTracing::find_shortest_path()
   vector<Node> par_list<n_nodes>;
   vector<Edge> edge_list;
   vector<Weight> weight_list;
+  map<Node, vector<V3DLONG> > edge_index;
   
   for(i = 0; i < n_nodes; ++i)
     par_list[i] = i;
   edge_list.clear();
   weight_list.clear();  
+  edge_index.clear();
   
   //initial the dist of the edge table;
   for(i = 0; i < n_edge_table; ++i)  
@@ -276,10 +280,12 @@ const char* NeuronTracing::find_shortest_path()
             continue; //skip the background value
           
           Weight weight = edge_weight(edge_table[it].dist, value_a, value_b, 255);
-          weigth_list.push_back(weight);
+          weight_list.push_back(weight);
 
           Edge edge = Edge(node_a, node_b);
           edge_list.push_back(edge);
+          
+          edge_index[node_a].push_back(edge_list.size() - 1);
 
           num_edges++;
 
@@ -308,4 +314,19 @@ const char* NeuronTracing::find_shortest_path()
   
   //now use shottest path algorithm to get the result  
   //dijkstra algorithm to get the shortest path
+  Dijkstra* dijkstra = new Dijkstra(edge_index, edge_list, weight_list, par_list, n_nodes);
+  if(! dijkstra)
+  {
+    error = "error to create the Dijlstra class";
+    cerr << error << endl;
+    if(n_end_nodes)
+    {
+      delete[] n_end_nodes; 
+      n_end_nodes = NULL;
+    }
+    return error;
+  }   
+  dijkstra.search(start_node);
+  delete dijkstra;
+  
 }

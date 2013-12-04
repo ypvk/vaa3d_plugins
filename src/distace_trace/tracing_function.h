@@ -4,8 +4,10 @@
 #include <vector>
 #include <pair>
 #include <math.h>
+#include <map>
 
 using std::vector;
+using std::map;
 
 //base graph parameters
 typedef double Weight;
