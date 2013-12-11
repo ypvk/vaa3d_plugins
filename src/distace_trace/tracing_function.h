@@ -54,6 +54,7 @@ class NeuronTracing
         float* x1, float* y1, float* z1, const Parameters& parameters);
     ~NeuronTracing();
     const char* find_shortest_path(); 
+    
     vector< vector<V_NeuronSWC_unit> > & get_cordinate() const;
   private:
     void print_basic_info();
@@ -63,6 +64,9 @@ class NeuronTracing
     V3DLONG node_from_xyz(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
     V3DLONG node_from_xyz(float x, float y, float z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step); 
     void node_to_xyz(V3DLONG node, float& x, float& y, float& z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
+    const char* merge_traced_path(); // merge the same node in diffrednt segment and rebuild the segemnt
+    vector<V_NeuronSWC_unit> downsample(const vector<V_NeuronSWC_unit>& coord, int step); 
+    bool smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter=false);
   private:
     //image base info
     unsigned char* data;
@@ -86,7 +90,7 @@ class NeuronTracing
     float* x1;
     float* y1;
     float* z1;    
-    vector< vector<V_NeuronSWC_unit> > mmUnit;
+    vector< vector<V_NeuronSWC_unit> > mm_swc_unit;
     Parameters* parameters;
 };
  

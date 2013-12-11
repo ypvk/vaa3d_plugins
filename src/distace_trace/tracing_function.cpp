@@ -6,6 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -326,7 +327,320 @@ const char* NeuronTracing::find_shortest_path()
     }
     return error;
   }   
-  dijkstra.search(start_node);
+  dijkstra->search(start_node);
   delete dijkstra;
+  //get the shortest path   
+  map<double, V3DLONG>  node_index;
+  vector<V_NeuronSWC_unit> m_swc_unit;
+  V_NeuronSWC_unit unit;
+  V3DLONG nexits = 0;
+
+  if (n_end_nodes > 0)
+  {
+    int end_index;
+    for(end_index = 0; end_index < n_end_nodes; ++end_index)
+    {
+      m_swc_unit.clear();
+      j = end_nodes[end_index];
+      unit.x = x1[end_index];
+      unit.y = y1[end_index];      
+      unit.z = z1[end_index];
+      unit.n = nexits + 1 + m_swc_unit.size();
+      unit.parent = unit.n + 1;
+      printf("end x y z %ld %g %g %g\n", j, unit.x, unit.y, unit.z);
+      m_swc_unit.push_back(unit);
+
+      while(true)
+      {
+        V3DLONG jj = j;
+        j = par_list[j];
+        if(j == jj)
+        {
+          m_swc_unit.clear();
+          error = "error happened: node link to self";
+          cerr << error << endl; 
+          break;
+        }  
+        if(j >= n_nodes)
+        {
+          m_swc_unit.clear();
+          error = "error happened: node out of index ";
+          cerr << error << endl; 
+          break;
+        }
+
+        if(j < 0)
+        {
+          m_sec_unit.clear();
+          error = "error happend: node less than 0 ";
+          cerr << error << endl;
+          break; 
+        }
+
+        if(j != start_node)
+        {
+          node_to_xyx(j, unit.x, unit.y, unit.z, nx, ny. nz, min_step);
+          unit.n = nexits + 1 + m_swc_unit.size();
+          unit.parent = unit.n + 1;
+          m_swc_unit.push_back(unit);
+        }
+        else
+        {
+          unit.x = x0;
+          unit.y = y0;
+          unit.z = z0;
+          unit.n = nexits + 1 + m_swc_unit.size(); 
+          unit.parent = -1;
+          m_swc_unit.push_back(unit);
+          break;
+        }
+      }
+      nexits += m_swc_unit.size(); 
+      if(m_swc_unit.size() >= 2) mm_swc_unit.push_back(m_swc_unit);
+    }
+  }
+  else {
+    //TODO get the node from start to all possible node
+  }
+  if (end_nodes) 
+  { 
+    delete[] end_nodes;
+    end_nodes = NULL;
+  } 
+  if(mm_swc_unit.size()) return NULL;
   
+  return error;
+}
+
+const char*  NeuronTracing::merge_traced_path()
+{
+  cout << "merge traced path" << endl;
+  const char* error = NULL;
+  int num_path = mm_swc_unit.size();
+  // for segment less than 2
+  if (num_path < 2) return NULL;
+  vector< vector<V_NeuronSWC_unit> > new_swc_units_all;
+  vector< V_NeuronSWC_unit> swc_units;  
+
+  vector<V3DLONG> index_start;
+  vector<V3DLONG> index_use; 
+  int i;
+  for(i = 0; i < num_path; ++i)
+  {
+    index_start[i] = mm_swc_unit.size() - 1;
+    index_use[i] = index_start[i];
+  }
+  
+  V3DLONG nexits = 0;
+  V3DLONG last_same_node_num = 0;
+  V3DLONG same_node_num = 0;
+
+  int* flags = new int[num_path]; //0 - search, 3 - over-searched, 1 - connected-branch, 2 - seperate branch
+  while(true)
+  {
+    printf("new units sisze: %ld \n", new_swc_units_all.size() );
+    bool all_skip = true; 
+    for(i = 0; i < num_path; ++i)
+    {
+      flags[i] = index_start[i] < 1 ? 3 : 0; 
+      if(flags[i] == 0) all_skip = false;
+    }
+    if(all_skip) break;
+    V3DLONG ii; 
+    V_NeuronSWC_unit same_node;
+    V3DLONG path = -1;
+    last_same_node_num = 0;
+    while(true)
+    {
+      same_node_num = 0;
+      for(i = 0; i < num_path; ++i)
+      {
+        if(flags[i] > 0) continue; //skip non-searched branch
+        ii = index_use[i] - 1;
+        if(ii < 0)
+        {
+          flags[i] = 3;
+          if(last_same_node_num == 1) break; // not search again
+          else continue;
+        }
+        V_NeuronSWC_unit& node = mm_swc_unit[i][ii];
+
+        if(same_node_num == 0)
+        {
+          same_node = node;
+          same_node_num = 1;
+          path = i;
+          if(last_same_node_num == 1) break;
+          else continue;
+        }
+        else //same node number not zero
+        {
+          if(same_node.x == node.x
+              && same_node.y = node.y
+              && same_node.z = node.z)
+          {
+            same_node_num ++;
+          }
+          else
+          {
+            index_start[i] = index_use[i];
+            switch(last_same_node_num)
+            { 
+              case 0:
+                flags[i] = 2;
+                break;
+              case 1:
+                flags[i] = 3;
+                break;
+              default:
+                flags[i] = 1;
+                break;
+            }
+            continue;
+          }
+        }
+      }/* end for */
+      if(last_same_node_num == 0)
+      {
+        last_same_node_num = same_node_num;
+      }
+
+      if(same_node_num > 0 && same_node_num == last_same_node_num) // in the same segment
+      {
+        for(i = 0; i < num_path; ++i)
+        {
+          if (flags[i] == 0)
+          {
+            index_use[i]--;
+          }
+        }
+      }
+      else if (same_node_num < last_same_node_num)// seperate
+      {
+        swc_units.clear();
+        if(path > -1)
+        {
+          cout << "add one branch to the new branch lists " << path << ":" << index_start[path] << "-" 
+            << index_use[path] << endl;
+          for(ii = index_start[ii]; ii >= index_use[ii]; --ii)
+          {
+            same_node = mm_swc_unit[path][ii];
+            nexits++;
+            same_node.n = nexits;
+            same_node.parent = nexits + 1;
+            swc_units.push_back(same_node);
+          }
+          swc_units[swc_units.size() - 1].parent = -1;// end is root
+          new_swc_units_all.push_back(swc_units);
+        }
+        for(i = 0; i < num_path; ++i)
+        {
+          switch(flags[i])
+          {
+            case 0:
+            case 3:
+              index_start[i] = index_use[i];
+              break;
+          }
+        }
+        if(same_node_num  < 1) break;
+      }
+      else
+      {
+        mm_swc_unit = new_swc_units_all;
+        error = "same_node_num > last_same_node_num, error return";
+        cerr << error << endl;
+        if (flags)
+        {
+          delete[] flags;
+          flags = NULL;
+        }
+        return error;
+      }
+
+      last_same_node_num = same_node_num;
+    }
+  }/*end while */
+  if (flags)
+  {
+    delete[] flags;
+    flags = NULL;
+  }
+  mm_swc_unit = new_swc_units_all;
+  return error;
+}
+
+vector<V_NeuronSWC_unit> NeuronTracing::downsample(const vector<V_NeuronSWC_unit>& coord, int step)
+{
+  if (step <= 1) return coord;
+  vector<V_NeuronSWC_unit> ne_coord;
+  V3DLONG size = coord.size();
+  // keep the start and the end node
+  if(size > 0) ne_coord.push_back(coord[0]);
+  V3DLONG i;
+  for(i = 1; i < size - 1; i+=step)
+  {
+    ne_coord.push_back(coord[i]);
+  }
+  if(size > 1) ne_coord.push_back(coord[size - 1]); 
+  return ne_coord;
+}
+
+bool compare(const V_NeuronSWC_unit& a, const V_NeuronSWC_unit& b)
+{
+  return (a.r < b.r);
+}
+bool NeuronTracing::smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter);
+{
+  vector<V_NeuronSWC_unit> m_coord = coord; 
+  V3DLONG size = coord.size();
+  int half_win = win_size/2;
+  
+  vector<V_NeuronSWC_unit> win_unit;
+  vector<double> win_dst;
+  V3DLONG i;
+  //without change the start and the end 
+  for(i = 1; i < size - 1; ++i)
+  {
+    win_unit.clear();
+    win_dst.clear();  
+
+    win_unit.push_back(m_coord[i]);
+    win_dst.push_back(1.0 + half_win);
+    
+    int j;
+    for(j = 1; j <= half_win; ++j)
+    {
+      int m1 = i+j;
+      int m2 = i-j;
+      if(m1 < 0) m1 = 0;
+      if(m1 > size - 1) m1 = size - 1;
+      if(m2 < 0) m2 = 0;
+      if(m2 > size - 1) m2 = size - 1; 
+      
+      win_unit.push_back(m_coord[m1]);
+      win_unit.push_back(m_coord[m2]);
+      win_dst.push_back(1.0 + half_win - j);
+      win_dst.push_back(1.0 + half_win - j);
+    }
+
+    double radius = 0;
+    if(media_filter)
+    {
+      sort(win_unit.begin(), win_unit.end(), compare);
+      radius = m_coord[half_win].r;  
+    }
+    else
+    {
+      double sum = 0;
+      int k;
+      for(k = 0; k < win_unit.size(); ++k)
+      {
+        radius += win_unit[i].r * win_dst[i];
+        sum += win_dst[i];
+      }
+      if(sum > 0) radius /= sum; 
+    }
+    coord[i].r = radius;
+  }
 }
