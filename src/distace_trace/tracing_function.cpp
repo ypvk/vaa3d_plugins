@@ -590,7 +590,7 @@ bool compare(const V_NeuronSWC_unit& a, const V_NeuronSWC_unit& b)
 {
   return (a.r < b.r);
 }
-bool NeuronTracing::smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter);
+void NeuronTracing::smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter);
 {
   vector<V_NeuronSWC_unit> m_coord = coord; 
   V3DLONG size = coord.size();
@@ -643,4 +643,124 @@ bool NeuronTracing::smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size,
     }
     coord[i].r = radius;
   }
+}
+double NeuronTracing::refit_radius(float x, float y, float z, double image_thresh, 
+    double bound_r, bool in_xy_pannel_only)
+{
+  double max_radius = dimx/2;
+  if(max_radius > dimy/2) max_radius = dimy/2;
+  if(!in_xy_pannel_only)
+  {
+    if(max_radius > (dimz*zthickness)/2) max_radius = (dimz*zthickness)/2;
+  }
+  double all_num = 0;
+  double background_num = 0;
+  double index_r;
+  for(index_r = 1; index_r <= max_radius; ++index_r)
+  {
+    double dx;
+    double dy;
+    double dz;
+    double z_lower;
+    double z_upper;
+    z_lower = -index_r / zthickness;
+    z_upper = -z_lower;
+    if (in_xy_pannel_only)
+    {
+      z_lower = z_upper = 0;
+    } 
+    for(dz = z_lower; dz <= z_upper; ++dz)
+      for(dy = -index_r; dy <= index_r; ++dy)
+        for(dx = -index_r; dx <= index_r; ++dx)
+        {
+          all_num++;
+          double r = sqrt(dx*dx + dy*dy + dz*dz);
+          if(r > index_r - 1 && r <= index_r)
+          {
+            V3DLONG i = x + dx;
+            V3DLONG j = y + dy;
+            V3DLONG k = z + dz; 
+            if(i < 0 || i > dimx ||
+                j < 0 || j > dimy ||
+                k < 0 || k > dimz)
+              return index_r;
+            
+            if(data[i + j*dimx + k*dimx*dimz] <= image_thresh)
+            {
+              background_num++;
+              if(background_num / all_num > 0.001) return index_r;
+            }
+          } 
+        }
+  }
+}
+
+void NeuronTracing::refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh)
+{ 
+  double r2 = r*r;
+  double dx, dy, dz;
+  double sum = 0;
+  double cx = 0;
+  double cy = 0;
+  double cz = 0;
+  for(dz = -r/zthickness; dz <= r/zthickness; ++dz)
+  {
+    for(dy = -r; dy <= r; ++dy)
+    {
+      if ((dz*dz + dy*dy) > r2) continue;
+      for(dx = -r; dx <= r; ++dx)
+      {
+        double dst = dx*dx + dy*dy + dz*dz;
+        if(dst > r2) continue;
+        double n_r = sqrt(dst);
+        if(n_r <= r)
+        {
+          V3DLONG i = x + dx;
+          V3DLONG j = y + dy;
+          V3DLONG k = z + dz; 
+          if(i < 0 || i > dimx ||
+              j < 0 || j > dimy ||
+              k < 0 || k > dimz)
+            continue;
+
+          double f = data[i + j*dimx + k*dimx*dimy];
+          if(f > image_thresh)
+          {
+            sum += f;
+            cx += f*(x + dx);
+            cy += f*(y + dy);
+            cz += f*(z + dz);
+          }
+        } 
+      }  
+    }
+  }
+  if(sum > 0)
+  {
+    cx = cx/sum;
+    cy = cy/sum;
+    cz = cz/sum;
+    
+    if(diff)
+    {
+      double len = sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]);
+      diff[0] /= len;
+      diff[1] /= len;
+      diff[2] /= len;
+
+      double tmp = cx * diff[0] + cy*diff[1] + cz*diff[2];
+      
+      cx = cx - tmp*diff[0];
+      cy = cy - tmp*diff[1];
+      cz = cz - tmp*diff[2];
+      x += cx;
+      y += cy;
+      z += cz;
+    }
+  }
+} 
+
+void NeuronTracing::refit_position_and_radius(vector<V_NeuronSWC_unit>& coord, bool move_position, bool in_xy_pannel_only)
+{
+
 }
