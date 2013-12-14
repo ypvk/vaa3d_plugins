@@ -762,5 +762,76 @@ void NeuronTracing::refit_position(float & x, float& y, float& z, double r, doub
 
 void NeuronTracing::refit_position_and_radius(vector<V_NeuronSWC_unit>& coord, bool move_position, bool in_xy_pannel_only)
 {
+  if(coord.size() < 2) return; // return if the size is less than 2
+  double ave_r = 0;
+  int i;
+  for(i = 0; i < coord.size() - 1; ++i)
+  {
+    float x = coord[i].x;
+    float y = coord[i].y;
+    float z = coord[i].z;
 
+    float x1 = coord[i+1].x;
+    float y1 = coord[i+1].y;
+    float z1 = coord[i+1].z;
+
+    ave_r += sqrt((x1-x)*(x1-x) + (y1-y)*(y1-y) + (z1-z)*(z1-z));
+  }
+  ave_r /= coord.size() - 1;
+  double image_ave = ImageUtils::getImageAveValue(data, dimx, dimy, dimz);
+  double image_std = ImageUtils::getImageStdValue(data, dimx, dimy, dimz);
+  double image_thresh = image_ave + image_std;
+
+  for(i = 0; i < coord.size(); ++i)
+  {
+    float x = coord[i].x;
+    float y = coord[i].y;
+    float z = coord[i].z;
+    
+    double radius = 0;
+    if(i == 0 || i == coord.size() - 1)
+    {
+      radius = refit_radius(x, y, z, image_thresh, ave_r*2, in_xy_pannel_only);   
+    }  
+    else
+    {
+      if(!move_position)
+      {
+        radius = refit_radius(x, y, z, image_thresh, aver_r*2, in_xy_pannel_only);
+      }    
+      else
+      {
+        double diffs[3] = {0};;
+        int size = coord.size();   
+        double half_win = 5;//dist to get the ave diff 
+        int j;
+        int tmp_j;
+        int tmp_j2;
+        for(j = 1; j <= half_win; ++j)
+        {
+          tmp_j = i + j;
+          tmp_j2 = i - j;
+          if(tmp_j < 0) tmp_j = 0;
+          if(tmp_j > size-1) tmp_j = size - 1;
+          if(tmp_j2 < 0) tmp_j2 = 0;
+          if(tmp_j2 > size - 1) tmp_j2 = size - 1;
+          diffs[0] += coord[tmp_j].x - coord[tmp_j2].x;
+          diffs[1] += coord[tmp_j].y - coord[tmp_j2].y;
+          diffs[2] += coord[tmp_j].z - coord[tmp_j2].z;
+        }
+
+        radius = ave_r;
+        const int ITERATOR_COUNT = 20;
+        for(j = 0; j < ITERATOR_COUNT; ++j)
+        {
+          refit_position(x, y, z, radius*2, diffs, image_thresh);
+          r = refit_radius(x, y, z, image_thresh, ave_r*2, in_xy_pannel_only); 
+        }
+      }
+    }
+    coord[i].x = x;
+    coord[i].y = y;
+    coord[i].z = z;
+    coord[i].r = radius;
+  }
 }

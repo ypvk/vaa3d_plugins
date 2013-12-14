@@ -68,8 +68,8 @@ class NeuronTracing
     vector<V_NeuronSWC_unit> downsample(const vector<V_NeuronSWC_unit>& coord, int step); 
     void smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter=false);
     double refit_radius(float x, float y, float z, double image_thresh, double bound_r,
-    void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
         bool in_xy_pannel_only);
+    void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
     void refit_position_and_radius(vector<V_NeuronSWC_unit>& coord, bool move_position,
         bool in_xy_pannel_only);
   private:
