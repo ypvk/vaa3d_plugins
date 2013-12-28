@@ -40,7 +40,7 @@ struct Parameters
   {
     node_step = 3;
     outsample_step = 2;
-    smoth_windsize = 5;
+    smooth_windsize = 5;
     edge_select = 0;
     background_select = 1;   
   }
