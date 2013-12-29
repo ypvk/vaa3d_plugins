@@ -98,10 +98,16 @@ void Dialog::onOkButtonClicked()
   const char* error = neuronTracing.find_shortest_path(); 
   if (error != NULL)
   {
-    cout << "run the function error" << endl;
+    cout << "run the find_shortest_path function error" << endl;
     return;
   }
-
+  error = neuronTracing.merge_traced_path();
+  if (error != NULL)
+  {
+    cout << "run the merge function error" << endl;
+    return;
+  }
+   
 }
 void Dialog::onCancelButtonClicked()
 {
