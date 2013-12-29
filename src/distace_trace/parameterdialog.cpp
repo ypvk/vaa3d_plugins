@@ -8,7 +8,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 
-ParameterDialog::ParameterDialog(QWidget* parent) : QDialog(parent)
+ParameterDialog::ParameterDialog(QWidget* parent, LandmarkList* landmarkList) : QDialog(parent), landmarkList(landmarkList)
 {
   this->setupUi();
   this->setupConnection();
@@ -88,4 +88,29 @@ void ParameterDialog::setupConnection()
   m_background_select->addItem(tr("false"));
   m_background_select->addItem(tr("true"));
   m_background_select->setCurrentIndex(para.background_select);
+  //add item for the landmark init for the comboBox
+  int i;
+  for(i = 0; i < landmarkList.size(); i++)
+  {
+    m_start_node->addItem(QString(i+1));
+    m_end_node->addItem(QString(i+1));
+  }
 }
+
+void ParameterDialog::setupConnection()
+{
+  connect(this->m_ok_button, SIGNAL(clicked()), this, SLOT(onOkButtonClicked()));
+  connect(this->m_cancel_button, SIGNAL(clicked()), this, SLOT(onCancelButtonClicked()));
+}
+
+void ParameterDialog::onOkButtonClicked()
+{
+  this->accept();
+}
+
+void ParameterDialog::onCancelButtonClicked()
+{
+  this->reject();
+}
+
+

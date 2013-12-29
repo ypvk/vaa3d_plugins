@@ -1,6 +1,7 @@
 #ifndef PARAMETOR_DIALOG_H
 #define PARAMETOR_DIALOG_H
 
+#incldue <v3d_interface.h>
 #include <QDialog>
 
 class QPushButton;
@@ -12,7 +13,7 @@ class ParameterDialog : public QDialog
 {
   Q_OBJECT
   public:
-    ParameterDialog(QWidget* parent = NULL);
+    ParameterDialog(QWidget* parent = NULL, LandmarkList* landmarkList);
     ~ParameterDialog();
     void get_data(Parameters& parameters);
   private slots:
@@ -40,5 +41,7 @@ class ParameterDialog : public QDialog
     QComboBox* m_background_select;
     QComboBox* m_start_node;
     QComboBox* m_end_node;
+
+    LandmarkList* m_landmarkList;
 };
 #endif/*PARAMETOR_DIALOG_H*/
