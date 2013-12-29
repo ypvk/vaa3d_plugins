@@ -23,6 +23,8 @@ class Dialog : public QDialog
   private:
     void setupUI();
     void setupConnection();
+  protected:
+    void closeEvent(QCloseEvent* event);
   private:
     QPushButton* m_okButton;
     QPushButton* m_cancelButton;

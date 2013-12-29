@@ -8,7 +8,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 
-ParameterDialog::ParameterDialog(QWidget* parent, LandmarkList* landmarkList) : QDialog(parent), landmarkList(landmarkList)
+ParameterDialog::ParameterDialog(QWidget* parent, LandmarkList* landmarkList) : QDialog(parent), m_landMarkSize(landMarkSize), m_channelSize(channelSize)
 {
   this->setupUi();
   this->setupConnection();
@@ -27,6 +27,8 @@ void ParameterDialog::setupConnection()
   //label init
   m_start_node_label = new QLabel(tr("start node lmark index"), this); 
   m_end_node_label = new QLabel(tr("end node lmark index"), this);
+  m_channel_label = new QLable(tr("Channel to work"), this);
+  //m_background_node_label = new QLabel(tr("background node lmark index", this);
   m_node_step_label = new QLabel(tr("node step"), this);
   m_outsample_step_label = new QLabel(tr("outsample step"), this);
   m_smooth_winsize_label = new QLabel(tr("smooth win_size"), this);
@@ -44,7 +46,12 @@ void ParameterDialog::setupConnection()
   m_background_select = new QComboBox(this);
   m_start_node = new QComboBox(this);
   m_end_node = new QComboBox(this);
-
+  m_channel = new QComboBox(this);
+  //init the button
+  m_ok_button = new QPushButton(tr("Ok"), this);
+  m_cancel_button = new QPushButton(tr("Cancel"), this);
+  //m_background_node = new QComboBox(this);
+  //m_background_node->setEnabled(false)//basically the backgroun node is not select
   //add layout
   //QVBoxLayout* mainLayout = new QVBoxLayout();
 
@@ -64,16 +71,20 @@ void ParameterDialog::setupConnection()
   mainLayout->addWidget(m_start_node, 0, 1);
   mainLayout->addWidget(m_end_node_label, 1, 0);
   mainLayout->addWidget(m_end_node, 1, 1);
-  mainLayout->addWidget(m_node_step_label, 2, 0);
-  mainLayout->addWidget(m_node_step_edit, 2, 1);
-  mainLayout->addWidget(m_outsample_step_label, 3, 0);
-  mainLayout->addWidget(m_outsample_step_edit, 3, 1);
-  mainLayout->addWidget(m_smooth_winsize_label, 4, 0);
-  mainLayout->addWidget(m_smooth_winsize_edit, 4, 1);
-  mainLayout->addWidget(m_edge_select_label, 5, 0);
-  mainLayout->addWidget(m_edge_select, 5, 1);
-  mainLayout->addWidget(m_background_select_label, 6, 0);
-  mainLayout->addWidget(m_background_select, 6, 1);
+  mainLayout->addWidget(m_channel_label, 2, 0);
+  mainLayout->addWidget(m_channel, 2, 1);
+  mainLayout->addWidget(m_node_step_label, 3, 0);
+  mainLayout->addWidget(m_node_step_edit, 3, 1);
+  mainLayout->addWidget(m_outsample_step_label, 4, 0);
+  mainLayout->addWidget(m_outsample_step_edit, 4, 1);
+  mainLayout->addWidget(m_smooth_winsize_label, 5, 0);
+  mainLayout->addWidget(m_smooth_winsize_edit, 5, 1);
+  mainLayout->addWidget(m_edge_select_label, 6, 0);
+  mainLayout->addWidget(m_edge_select, 6, 1);
+  mainLayout->addWidget(m_background_select_label, 7, 0);
+  mainLayout->addWidget(m_background_select, 7, 1);
+  mainLayout->addWidget(m_ok_button, 8, 0);
+  mainLayout->addWidget(m_cancel_button, 8, 1);
   
   this->setLayout(mainLayout);
 
@@ -90,10 +101,15 @@ void ParameterDialog::setupConnection()
   m_background_select->setCurrentIndex(para.background_select);
   //add item for the landmark init for the comboBox
   int i;
-  for(i = 0; i < landmarkList.size(); i++)
+  for(i = 0; i < m_landMarkSize; ++i)
   {
-    m_start_node->addItem(QString(i+1));
-    m_end_node->addItem(QString(i+1));
+    m_start_node->addItem(QString::number(i+1));
+    m_end_node->addItem(QString::number(i+1));
+    //m_background_node->addItem(QString::number(i+1));
+  }
+  for(i = 0; i < m_channelSizel; ++i)
+  {
+    m_channel->addItem(QString::number(i+1));
   }
 }
 
@@ -113,4 +129,29 @@ void ParameterDialog::onCancelButtonClicked()
   this->reject();
 }
 
+void ParameterDialog::getData(Parameter& parameter)
+{
+  parameter.node_step = m_node_step_edit.text().toInt();
+  parameter.outsample_step = m_outsample_step_edit.text().toInt();  
+  parameter.smooth)win_size = m_smooth_winsize_edit.text().toInt();
+  parameter.edge_select = m_edge_select.currrentIndex(); 
+  parameter.background_select = m_background_select.currentIndex();
+  //init the node index  
+  m_start_node_index = m_start_node.currrentIndex();
+  m_end_node_index = m_end_node.currentIndex();
+  m_channel_index = m_channel.currentIndex();
+}
+int ParameterDialog::getStartNodeIndex() const 
+{
+  return this->m_start_node_index;
+}
 
+int ParameterDialog::getEndNodeIndex() const
+{
+  return this->m_end_node_index;
+}
+
+int ParameterDialog::getChannelIndex() const
+{
+  return this->m_channel_index;
+}

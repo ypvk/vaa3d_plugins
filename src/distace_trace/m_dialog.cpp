@@ -4,6 +4,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include "tracing_function.h"
+#include "parameterdialog.h"
+#include <iostream>
+using namespace std;
 
 Dialog::Dialog(QWidget *parent) : QDialog(parent)
 {
@@ -64,6 +68,56 @@ void Dialog::updateImageList()
 void Dialog::onOkButtonClicked()
 {
   int index = this->m_imageList->currentIndex();
-  Image4DSimple* image = this->m_callback->getImage(this->m_callback->getImageWindowList()[index]);
+  v3dhandle image_window = this->m_callback->getImageWindowList()[index];
+  Image4DSimple* image = this->m_callback->getImage(image_window);
   //run the function
+  LandmarkList landmarkList = this->m_callback->getLandMark(image_window);
+  Parameters para; 
+  ParameterDialog parameterDialog(this, landmarkList.size(), image->getCDim());
+  if(parameterDialog.exec() != QDialog::Accepted)
+  {
+    cout << "reject the dialog return" << endl;
+    return;    
+  }  
+  //now simplly add two node, then add multinode function
+  parameterDialog.getData(para);
+  const LocationSimple& startLandMark = landmarkList.get(parameterDialog.getStartNodeIndex());
+  const LocationSimple& endLandMark = landmarkList.get(parameterDialog.getEndNodeIndex());
+  int channelIndex =  parameterDialog.getChannelIndex();
+  //prepare the basic para fro the nueron_tracing 
+  unsigned char* data = image->getRawDataAtChannel(channelIndex);
+  float x[1] = {endLandMark.x};
+  float y[1] = {endLandMark.y};
+  float z[1] = {endLandMark.z};
+  NeuronTracing neuronTracing(data, 
+      image->getXDim(), image->getYDim(), image->getZDim(),
+      1.0, 0, 0, 0, image->getXDim() - 1, image->getYDim() - 1, image->getZDim() - 1, 
+      startLandMark.x, startLandMark.y, startLandMark.z,
+      x, y, z, 1,
+      para);
+  const char* error = neuronTracing.find_shortest_path(); 
+  if (error != NULL)
+  {
+    cout << "run the function error" << endl;
+    return;
+  }
+
+}
+void Dialog::onCancelButtonClicked()
+{
+  this->reject();
+}
+
+void Dialog::closeEvent(QCloseEvent* event)
+{
+  if(...)
+  {
+    //TODO save the result
+        
+    event->accept();
+  } 
+  else
+  {
+    event->ignore();
+  }
 }
