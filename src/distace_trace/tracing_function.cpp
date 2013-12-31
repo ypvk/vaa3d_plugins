@@ -331,8 +331,8 @@ const char* NeuronTracing::find_shortest_path()
   delete dijkstra;
   //get the shortest path   
   map<double, V3DLONG>  node_index;
-  vector<V_NeuronSWC_unit> m_swc_unit;
-  V_NeuronSWC_unit unit;
+  vector<NeuronSWC> m_swc_unit;
+  NeuronSWC unit;
   V3DLONG nexits = 0;
 
   if (n_end_nodes > 0)
@@ -346,7 +346,7 @@ const char* NeuronTracing::find_shortest_path()
       unit.y = y1[end_index];      
       unit.z = z1[end_index];
       unit.n = nexits + 1 + m_swc_unit.size();
-      unit.parent = unit.n + 1;
+      unit.pn = unit.n + 1;
       printf("end x y z %ld %g %g %g\n", j, unit.x, unit.y, unit.z);
       m_swc_unit.push_back(unit);
 
@@ -381,7 +381,7 @@ const char* NeuronTracing::find_shortest_path()
         {
           node_to_xyx(j, unit.x, unit.y, unit.z, nx, ny. nz, min_step);
           unit.n = nexits + 1 + m_swc_unit.size();
-          unit.parent = unit.n + 1;
+          unit.pn = unit.n + 1;
           m_swc_unit.push_back(unit);
         }
         else
@@ -390,7 +390,7 @@ const char* NeuronTracing::find_shortest_path()
           unit.y = y0;
           unit.z = z0;
           unit.n = nexits + 1 + m_swc_unit.size(); 
-          unit.parent = -1;
+          unit.pn = -1;
           m_swc_unit.push_back(unit);
           break;
         }
@@ -419,8 +419,8 @@ const char*  NeuronTracing::merge_traced_path()
   int num_path = mm_swc_unit.size();
   // for segment less than 2
   if (num_path < 2) return NULL;
-  vector< vector<V_NeuronSWC_unit> > new_swc_units_all;
-  vector< V_NeuronSWC_unit> swc_units;  
+  vector< vector<NeuronSWC> > new_swc_units_all;
+  vector< NeuronSWC> swc_units;  
 
   vector<V3DLONG> index_start;
   vector<V3DLONG> index_use; 
@@ -447,7 +447,7 @@ const char*  NeuronTracing::merge_traced_path()
     }
     if(all_skip) break;
     V3DLONG ii; 
-    V_NeuronSWC_unit same_node;
+    NeuronSWC same_node;
     V3DLONG path = -1;
     last_same_node_num = 0;
     while(true)
@@ -463,7 +463,7 @@ const char*  NeuronTracing::merge_traced_path()
           if(last_same_node_num == 1) break; // not search again
           else continue;
         }
-        V_NeuronSWC_unit& node = mm_swc_unit[i][ii];
+        NeuronSWC& node = mm_swc_unit[i][ii];
 
         if(same_node_num == 0)
         {
@@ -527,10 +527,10 @@ const char*  NeuronTracing::merge_traced_path()
             same_node = mm_swc_unit[path][ii];
             nexits++;
             same_node.n = nexits;
-            same_node.parent = nexits + 1;
+            same_node.pn = nexits + 1;
             swc_units.push_back(same_node);
           }
-          swc_units[swc_units.size() - 1].parent = -1;// end is root
+          swc_units[swc_units.size() - 1].pn = -1;// end is root
           new_swc_units_all.push_back(swc_units);
         }
         for(i = 0; i < num_path; ++i)
@@ -570,10 +570,10 @@ const char*  NeuronTracing::merge_traced_path()
   return error;
 }
 
-vector<V_NeuronSWC_unit> NeuronTracing::downsample(const vector<V_NeuronSWC_unit>& coord, int step)
+vector<NeuronSWC> NeuronTracing::downsample(const vector<NeuronSWC>& coord, int step)
 {
   if (step <= 1) return coord;
-  vector<V_NeuronSWC_unit> ne_coord;
+  vector<NeuronSWC> ne_coord;
   V3DLONG size = coord.size();
   // keep the start and the end node
   if(size > 0) ne_coord.push_back(coord[0]);
@@ -586,17 +586,17 @@ vector<V_NeuronSWC_unit> NeuronTracing::downsample(const vector<V_NeuronSWC_unit
   return ne_coord;
 }
 
-bool compare(const V_NeuronSWC_unit& a, const V_NeuronSWC_unit& b)
+bool compare(const NeuronSWC& a, const NeuronSWC& b)
 {
   return (a.r < b.r);
 }
-void NeuronTracing::smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter);
+void NeuronTracing::smooth_radius(vector<NeuronSWC>& coord, int win_size, bool media_filter);
 {
-  vector<V_NeuronSWC_unit> m_coord = coord; 
+  vector<NeuronSWC> m_coord = coord; 
   V3DLONG size = coord.size();
   int half_win = win_size/2;
   
-  vector<V_NeuronSWC_unit> win_unit;
+  vector<NeuronSWC> win_unit;
   vector<double> win_dst;
   V3DLONG i;
   //without change the start and the end 
@@ -760,7 +760,7 @@ void NeuronTracing::refit_position(float & x, float& y, float& z, double r, doub
   }
 } 
 
-void NeuronTracing::refit_position_and_radius(vector<V_NeuronSWC_unit>& coord, bool move_position, bool in_xy_pannel_only)
+void NeuronTracing::refit_position_and_radius(vector<NeuronSWC>& coord, bool move_position, bool in_xy_pannel_only)
 {
   if(coord.size() < 2) return; // return if the size is less than 2
   double ave_r = 0;

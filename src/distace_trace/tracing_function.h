@@ -55,10 +55,10 @@ class NeuronTracing
     ~NeuronTracing();
     const char* find_shortest_path(); 
     const char* merge_traced_path(); // merge the same node in diffrednt segment and rebuild the segemnt
-    vector<V_NeuronSWC_unit> downsample(const vector<V_NeuronSWC_unit>& coord, int step); 
-    void refit_position_and_radius(vector<V_NeuronSWC_unit>& coord, bool move_position,
+    vector<NeuronSWC> downsample(const vector<NeuronSWC>& coord, int step); 
+    void refit_position_and_radius(vector<NeuronSWC>& coord, bool move_position,
     
-    vector< vector<V_NeuronSWC_unit> > & get_cordinate() const;
+    vector< vector<NeuronSWC> > & get_cordinate() const;
   private:
     void print_basic_info();
     bool validate_region();
@@ -67,7 +67,7 @@ class NeuronTracing
     V3DLONG node_from_xyz(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
     V3DLONG node_from_xyz(float x, float y, float z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step); 
     void node_to_xyz(V3DLONG node, float& x, float& y, float& z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
-    void smooth_radius(vector<V_NeuronSWC_unit>& coord, int win_size, bool media_filter=false);
+    void smooth_radius(vector<NeuronSWC>& coord, int win_size, bool media_filter=false);
     double refit_radius(float x, float y, float z, double image_thresh, double bound_r,
         bool in_xy_pannel_only);
     void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
@@ -95,8 +95,9 @@ class NeuronTracing
     float* x1;
     float* y1;
     float* z1;    
-    vector< vector<V_NeuronSWC_unit> > mm_swc_unit;
+    vector< vector<NeuronSWC> > mm_swc_unit;
     Parameters* parameters;
+    V_NeuronSWC nueron_swc;
 };
  
 inline double metric_function(double value, double max_v=255.0);

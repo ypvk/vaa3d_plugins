@@ -7,6 +7,7 @@
 class QPushButton;
 class QComboBox;
 class QLabel;
+class QList;
 
 class Dialog : public QDialog
 {
@@ -31,5 +32,7 @@ class Dialog : public QDialog
     QLabel* m_imageLabel;
     QComboBox* m_imageList;
     V3DPluginCallback2* m_callback;
+
+    QList<NeuronTree> m_traced_neurons;
 };
 #endif

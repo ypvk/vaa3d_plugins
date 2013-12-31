@@ -107,7 +107,8 @@ void Dialog::onOkButtonClicked()
     cout << "run the merge function error" << endl;
     return;
   }
-   
+  //downsample the curve
+     
 }
 void Dialog::onCancelButtonClicked()
 {
