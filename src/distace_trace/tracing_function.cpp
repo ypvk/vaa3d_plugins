@@ -411,7 +411,7 @@ const char* NeuronTracing::find_shortest_path()
   
   return error;
 }
-
+//merge the traced neuron segements 
 const char*  NeuronTracing::merge_traced_path()
 {
   cout << "merge traced path" << endl;
@@ -833,5 +833,59 @@ void NeuronTracing::refit_position_and_radius(vector<NeuronSWC>& coord, bool mov
     coord[i].y = y;
     coord[i].z = z;
     coord[i].r = radius;
+  }
+}
+
+void NeuronTracing::rearrage_curve_index()
+{
+  vector< vector<NeuronSWC> > mm_swc_tmp = mm_swc_unit;
+  V3DLONG i, j;
+  mm_swc_unit.clear();
+  for(i = 0; i < mm_swc_tmp.size(); ++i)
+  {
+    V3DLONG n_max = get_max_n_num(mm_swc_unit);
+    vector<NeuronSWC> ne_seg;
+    ne_seg.clear();
+    for(j = 0; j < mm_swc_tmp[i].size(); ++j)
+    {
+      NeuronSWC v; 
+      set_swc_unit(v, n_max, mm_swc_tmp, j, true);
+      ne_seg.push_back(v);
+    } 
+    mm_swc_unit.push_back(ne_seg);
+  }
+}
+
+V3DLONG NeuronTracing::get_max_n_num(vector< vector<NeuronSWC>& mm_swc)
+{
+  V3DLONG i, j;
+  V3DLONG max_n = -1; 
+  for(i = 0; i < mm_swc.size(); ++i)
+  {
+    for(j = 0; j < mm_swc[i].size(); ++j)
+    {
+      if(max_n < mm_swc[i][j].n) max_n = mm_swc[i][j].n
+    }
+      
+  }
+  return max_n;
+}
+void NeuronTracing::set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r)
+{
+  V3DLONG size = swc_unit.size();
+  v.type = 3;
+  v.x = swc_units[index].x;
+  v.y = swc_units[index].y;
+  v.z = swc_units[index].z;
+  v.r = r;
+  if(order)
+  {
+    v.n = num + index + 1;
+    v.pn = (i >= N-1) ? -1 : v.n+1;
+  }
+  else 
+  {
+    v.n = num + index + 1;
+    v.pn = (i <= 0) ? -1 : v.n + 1;
   }
 }

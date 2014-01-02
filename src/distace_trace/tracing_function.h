@@ -57,7 +57,7 @@ class NeuronTracing
     const char* merge_traced_path(); // merge the same node in diffrednt segment and rebuild the segemnt
     vector<NeuronSWC> downsample(const vector<NeuronSWC>& coord, int step); 
     void refit_position_and_radius(vector<NeuronSWC>& coord, bool move_position,
-    
+    void rearrage_curve_index();     
     vector< vector<NeuronSWC> > & get_cordinate() const;
   private:
     void print_basic_info();
@@ -72,6 +72,8 @@ class NeuronTracing
         bool in_xy_pannel_only);
     void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
         bool in_xy_pannel_only);
+    V3DLONG get_max_n_num(vector< vector<NeuronSWC> >& mm_swc);
+    void set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r=1);
   private:
     //image base info
     unsigned char* data;
