@@ -81,8 +81,8 @@ void Dialog::onOkButtonClicked()
   }  
   //now simplly add two node, then add multinode function
   parameterDialog.getData(para);
-  const LocationSimple& startLandMark = landmarkList.get(parameterDialog.getStartNodeIndex());
-  const LocationSimple& endLandMark = landmarkList.get(parameterDialog.getEndNodeIndex());
+  const LocationSimple& startLandMark = landmarkList.at(parameterDialog.getStartNodeIndex());
+  const LocationSimple& endLandMark = landmarkList.at(parameterDialog.getEndNodeIndex());
   int channelIndex =  parameterDialog.getChannelIndex();
   //prepare the basic para fro the nueron_tracing 
   unsigned char* data = image->getRawDataAtChannel(channelIndex);
