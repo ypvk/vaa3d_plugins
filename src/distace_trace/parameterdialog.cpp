@@ -176,3 +176,7 @@ void ParameterDialog::onCheckBoxStateChanged(int state)
         m_end_node->setEnabled(false);
     }
 }
+bool ParameterDialog::isAllLeftNodesSelected() const
+{
+  return this->m_select_all_the_nodes;
+}

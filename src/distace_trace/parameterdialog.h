@@ -1,7 +1,7 @@
 #ifndef PARAMETOR_DIALOG_H
 #define PARAMETOR_DIALOG_H
 
-#incldue <v3d_interface.h>
+#include <v3d_interface.h>
 #include <QDialog>
 
 class QPushButton;
@@ -21,6 +21,7 @@ class ParameterDialog : public QDialog
     int getStartNodeIndex() const;
     int getEndNodeIndex() const;
     int getChannelIndex() const;
+    bool isAllLeftNodesSelected() const;
   private slots:
     void onOkButtonClicked();
     void onCancelButtonClicked();

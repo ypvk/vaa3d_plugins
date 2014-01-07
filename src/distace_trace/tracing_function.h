@@ -2,7 +2,6 @@
 #define TRACING_FUNCTION_H
 #include <v3d_interface.h>
 #include <vector>
-#include <pair>
 #include <math.h>
 #include <map>
 
@@ -39,8 +38,8 @@ struct Parameters
   Parameters()
   {
     node_step = 3;
-    outsample_step = 2;
-    smooth_windsize = 5;
+    outsample_step = 1;
+    smooth_winsize = 5;
     edge_select = 0;
     background_select = 1;   
   }
@@ -50,15 +49,16 @@ class NeuronTracing
   public:
     NeuronTracing(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz, 
         float zthickness, V3DLONG bx0, V3DLONG by0, V3DLONG bz0, V3DLONG bx1,
-        V3DLONG by1, V3DLONG bz1, float x0, float y0, float, z0, int n_end_nodes, 
+        V3DLONG by1, V3DLONG bz1, float x0, float y0, float z0, int n_end_nodes, 
         float* x1, float* y1, float* z1, const Parameters& parameters);
     ~NeuronTracing();
     const char* find_shortest_path(); 
     const char* merge_traced_path(); // merge the same node in diffrednt segment and rebuild the segemnt
-    vector<NeuronSWC> downsample(const vector<NeuronSWC>& coord, int step); 
-    void refit_position_and_radius(vector<NeuronSWC>& coord, bool move_position,
-    void rearrage_curve_index();     
+    void rearrange_curve_index();     
     vector< vector<NeuronSWC> > & get_cordinate() const;
+    void downsample_curve();
+    void refit_pos_r_and_smooth_r(bool move_position, bool in_xy_pannel_only, bool media_filter=false);
+    void fetch_data_for_neurontree(QList<NeuronTree>& traced_neuron_trees);
   private:
     void print_basic_info();
     bool validate_region();
@@ -67,13 +67,15 @@ class NeuronTracing
     V3DLONG node_from_xyz(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
     V3DLONG node_from_xyz(float x, float y, float z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step); 
     void node_to_xyz(V3DLONG node, float& x, float& y, float& z, V3DLONG nx, V3DLONG ny, V3DLONG nz, int step);
+    void refit_position_and_radius(vector<NeuronSWC>& coord, bool move_position,
+        bool in_xy_pannel_only);
     void smooth_radius(vector<NeuronSWC>& coord, int win_size, bool media_filter=false);
     double refit_radius(float x, float y, float z, double image_thresh, double bound_r,
         bool in_xy_pannel_only);
     void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
-        bool in_xy_pannel_only);
     V3DLONG get_max_n_num(vector< vector<NeuronSWC> >& mm_swc);
     void set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r=1);
+    vector<NeuronSWC> downsample(const vector<NeuronSWC>& coord, int step); 
   private:
     //image base info
     unsigned char* data;
@@ -98,8 +100,7 @@ class NeuronTracing
     float* y1;
     float* z1;    
     vector< vector<NeuronSWC> > mm_swc_unit;
-    Parameters* parameters;
-    V_NeuronSWC nueron_swc;
+    const Parameters* parameters;
 };
  
 inline double metric_function(double value, double max_v=255.0);

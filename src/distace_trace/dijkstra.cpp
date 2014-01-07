@@ -7,12 +7,12 @@ using namespace std;
 
 const static double INF = 1.79769e+308; //max_value
 
-Dijkstra::Dijkstra(map<V3DLONG, vector<V3DLONG> >& edge_index, vector<std::pair<V3DLONG. V3DLONG> >& edge_list, 
+Dijkstra::Dijkstra(map<V3DLONG, vector<V3DLONG> >& edge_index, vector<std::pair<V3DLONG, V3DLONG> >& edge_list, 
     vector<double>& weight_list, vector<V3DLONG>& parent_list, V3DLONG n_nodes)
 {
   this->edge_index = &edge_index;
   this->edge_list = &edge_list;
-  this->weight_list = &weigth_list;
+  this->weight_list = &weight_list;
   this->parent_list = &parent_list;
   this->n_nodes = n_nodes;
   this->init();
@@ -24,7 +24,10 @@ Dijkstra::~Dijkstra()
   delete[] this->heap;
   delete[] this->heap_index;
 
-  dist = is_visited = heap = heap_index = NULL;
+  dist = NULL;
+  is_visited = NULL;
+  heap = NULL;
+  heap_index = NULL;
 }
 void Dijkstra::init()
 {
@@ -116,10 +119,10 @@ void Dijkstra::search(V3DLONG start)
     {
       V3DLONG index = edge_for_node[i];
       V3DLONG to_node = (*edge_list)[index].second; 
-      if(!is_visited[to_node] && dist[to_node] > dist[node] + (*edge_weight)[index])
+      if(!is_visited[to_node] && dist[to_node] > dist[node] + (*weight_list)[index])
       {
-        parent_list[to_node] = node;
-        decreaseKey(to_node, dist[node] + (*edge_weight)[index]);
+        (*parent_list)[to_node] = node;
+        decreaseKey(to_node, dist[node] + (*weight_list)[index]);
       }
     }
   } 
@@ -142,10 +145,10 @@ void Dijkstra::search(V3DLONG start, V3DLONG end)
     {
       V3DLONG index = edge_for_node[i];
       V3DLONG to_node = (*edge_list)[index].second;
-      if(!is_visited[to_node] && dist[to_node] > dist[node] + (*edge_weight)[index])
+      if(!is_visited[to_node] && dist[to_node] > dist[node] + (*weight_list)[index])
       {
-        parent_list[to_node] = node;
-        decreaseKey(to_node, dist[node] + (*edge_weight)[index]);
+        (*parent_list)[to_node] = node;
+        decreaseKey(to_node, dist[node] + (*weight_list)[index]);
       }
     }
   }

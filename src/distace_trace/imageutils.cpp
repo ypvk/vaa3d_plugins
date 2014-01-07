@@ -2,7 +2,7 @@
 #include "imageutils.h"
 
 
-double ImageUtils::getBlockMaxValue(unsigned char* data, V3DLONG dimx, V3DLONG dimy, vV3DLONG dimz, V3DLONG x0, V3DLONG y0, V3DLONG z0, int xstep, int ystep, int zstep)
+double ImageUtils::getBlockMaxValue(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz, V3DLONG x0, V3DLONG y0, V3DLONG z0, int xstep, int ystep, int zstep)
 {
   if(!data || dimx <= 0 || dimy <= 0 || dimz <= 0 || x0 < 0 || x0 > dimx || y0 < 0 \
       || y0 > dimy || z0 < 0 || z0 > dimz)
@@ -25,9 +25,9 @@ double ImageUtils::getBlockMaxValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   double mv = 0;
   for(i = xstart; i <= xend; ++i)
     for(j = ystart; j <= yend; ++j)
-      for(k = zstart; k <= zend; ++z)
+      for(k = zstart; k <= zend; ++k)
       {
-        v = double(data[i + j * dimx + z * dimx * dimy]);
+        v = double(data[i + j * dimx + k * dimx * dimy]);
         if (mv < v)
           mv = v;
       }
@@ -59,12 +59,12 @@ double ImageUtils::getBlockAveValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   n = 0;
   for(i = xstart; i <= xend; ++i)
     for(j = ystart; j <= yend; ++j)
-      for(k = zstart; k <= zend; ++z)
+      for(k = zstart; k <= zend; ++k)
       {
-        value += double(double(data[i + j * dimx + z * dimx * dimy]);
+        value += double(data[i + j * dimx + k * dimx * dimy]);
         ++n;
       }
-  return n == 0 ? 0 : v/n;
+  return n == 0 ? 0 : value/n;
 }
 
 bool ImageUtils::setBlockAveValue(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz, V3DLONG x0, V3DLONG y0, V3DLONG z0, int xstep, int ystep, int zstep, unsigned char target_value)
@@ -89,7 +89,7 @@ bool ImageUtils::setBlockAveValue(unsigned char* data, V3DLONG dimx, V3DLONG dim
   V3DLONG k;
   for(i = xstart; i <= xend; ++i)
     for(j = ystart; j <= yend; ++j)
-      for(k = zstart; k <= zend; ++z)
+      for(k = zstart; k <= zend; ++k)
       {
         data[i + j * dimx + k * dimx * dimy] = target_value;
       }
@@ -122,7 +122,7 @@ double ImageUtils::getBlockStdValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   double value = 0;
   for(i = xstart; i <= xend; ++i)
     for(j = ystart; j <= yend; ++j)
-      for(k = zstart; k <= zend; ++z)
+      for(k = zstart; k <= zend; ++k)
       {
         double v = data[i + j * dimx + k * dimx * dimy] - ave_value;
         value += v*v;
@@ -142,7 +142,7 @@ double ImageUtils::getImageMaxValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   return getBlockMaxValue(data, dimx, dimy, dimz, x0, y0, z0, xstep, ystep, zstep); 
 }
 
-double ImageUtils::getImageAveValue(unsigned char* data, V3DLONG dimx, V3DLONG dimz, V3DLONG dimz)
+double ImageUtils::getImageAveValue(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz)
 {
   V3DLONG x0 = dimx/2;
   V3DLONG y0 = dimy/2;
@@ -152,7 +152,7 @@ double ImageUtils::getImageAveValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   V3DLONG zstep = dimz;
   return getBlockAveValue(data, dimx, dimy, dimz, x0, y0, z0, xstep, ystep, zstep); 
 }
-double ImageUtils::getImageStdValue(unsigned char* data, V3DLONG dimx, V3DLONG dimz, V3DLONG dimz)
+double ImageUtils::getImageStdValue(unsigned char* data, V3DLONG dimx, V3DLONG dimy, V3DLONG dimz)
 {
   V3DLONG x0 = dimx/2;
   V3DLONG y0 = dimy/2;
@@ -162,4 +162,3 @@ double ImageUtils::getImageStdValue(unsigned char* data, V3DLONG dimx, V3DLONG d
   V3DLONG zstep = dimz;
   return getBlockStdValue(data, dimx, dimy, dimz, x0, y0, z0, xstep, ystep, zstep); 
 }
-

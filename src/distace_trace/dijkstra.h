@@ -2,16 +2,16 @@
 #define DIJKSTRA_H
 
 #include <v3d_interface.h>
-
-class map;
-class vector;
+#include <map>
+#include <vector>
+using namespace std;
 
 class Dijkstra
 {
   public:
-    Dijkstra(map<V3DLONG, vector<V3DLONG> >& edge_index, vector<std::pair<V3DLONG. V3DLONG> >& edge_list, 
+    Dijkstra(map<V3DLONG, vector<V3DLONG> >& edge_index, vector<std::pair<V3DLONG, V3DLONG> >& edge_list, 
         vector<double>& weight_list, vector<V3DLONG>& parent_list, V3DLONG n_nodes);
-    ~Dikstra();
+    ~Dijkstra();
     void search(V3DLONG start);
     void search(V3DLONG start, V3DLONG end);
   private:
@@ -29,7 +29,7 @@ class Dijkstra
     V3DLONG* heap_index;  //heap index node_value -> index in the heap
     //insert into the class
     map<V3DLONG, vector<V3DLONG> >* edge_index; // map for the value start_node_value -> edge_indexs_vector  
-    vector<std::pair<V3DLONG. V3DLONG> >* edge_list; // edge list each value is start_node:end_node
+    vector<std::pair<V3DLONG, V3DLONG> >* edge_list; // edge list each value is start_node:end_node
     vector<double>* weight_list; // edge_weight index are the same as the edge_list
     vector<V3DLONG>* parent_list; // cout the parent_list
     V3DLONG n_nodes; // cout all the node number

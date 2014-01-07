@@ -153,7 +153,7 @@ const char* NeuronTracing::find_shortest_path()
   // define the node index
   V3DLONG nx = (bx1-bx0)/min_step + 1;
   V3DLONG ny = (by1-by0)/min_step + 1;
-  V3DLONg nz = (bz1-bz0)/min_step + 1;
+  V3DLONG nz = (bz1-bz0)/min_step + 1;
   
   int n_edge_table = edge_select == 0 ? 3:13;
    
@@ -181,7 +181,7 @@ const char* NeuronTracing::find_shortest_path()
     }
     return error; 
   }
-  start_node = node_from_xyz(x0, y0, z0, nx, ny, nz, step);
+  start_node = node_from_xyz(x0, y0, z0, nx, ny, nz, min_step);
   if(!validate_index(start_node, n_nodes))
   {
     error = "start node out of index";
@@ -201,7 +201,7 @@ const char* NeuronTracing::find_shortest_path()
       cout << "node[" << i << "]outof bounding" << endl;
       continue;
     }
-    end_nodes[i] = node_from_xyz(x1[i], y1[i], z1[i], nx, ny, nz, step);
+    end_nodes[i] = node_from_xyz(x1[i], y1[i], z1[i], nx, ny, nz, min_step);
     if (!validate_index(end_nodes[i], n_nodes))
     {
       n_end_nodes_outbound++;
@@ -226,7 +226,7 @@ const char* NeuronTracing::find_shortest_path()
   double i_threshold = 0;
   if(background_select) i_threshold = (i_ave < i_std) ? i_ave : (i_ave + i_std) * 0.5;
   //define node and egde list
-  vector<Node> par_list<n_nodes>;
+  vector<Node> par_list(n_nodes);
   vector<Edge> edge_list;
   vector<Weight> weight_list;
   map<Node, vector<V3DLONG> > edge_index;
@@ -242,7 +242,7 @@ const char* NeuronTracing::find_shortest_path()
   {
     double di = edge_table[i].i0 - edge_table[i].i1;
     double dj = edge_table[i].j0 - edge_table[i].j1; 
-    double dk = edge_table[i].k0 - eget_table[i].k1;
+    double dk = edge_table[i].k0 - edge_table[i].k1;
     edge_table[i].dist = sqrt(di*di + dj*dj + dk*dk);
   }
 
@@ -273,9 +273,13 @@ const char* NeuronTracing::find_shortest_path()
           all_count++;
           
           value_a = ImageUtils::getBlockAveValue(data, dimx, dimy, dimz, bx0 + i0 * min_step, by0+j0*min_step,\
-              (V3DLONG)(bz0+k0*min_step)/zthickness);
+              (V3DLONG)(bz0+k0*min_step)/zthickness,
+              min_step, min_step, min_step
+              );
           value_b = ImageUtils::getBlockAveValue(data, dimx, dimy, dimz, bx0 + i1 * min_step, by0+j1*min_step, \
-              (V3DLONG)(bz0+k1*min_step)/zthickness);
+              (V3DLONG)(bz0+k1*min_step)/zthickness,
+              min_step, min_step, min_step
+              );
 
           if (value_a < i_threshold || value_b < i_threshold)
             continue; //skip the background value
@@ -299,10 +303,10 @@ const char* NeuronTracing::find_shortest_path()
   {
     error = "number of edges doesn't match";
     cerr << error << endl;
-    if(n_end_nodes)
+    if(end_nodes)
     {
-      delete[] n_end_nodes; 
-      n_end_nodes = NULL;
+      delete[] end_nodes; 
+      end_nodes = NULL;
     }
     return error;
   }
@@ -310,7 +314,7 @@ const char* NeuronTracing::find_shortest_path()
   printf("image ave=%g, std=%g, max=%g. chose %ld out of %ld links \n", i_ave, i_std, i_max, num_edges, all_count);
   printf("Node num=%ld, Edge num =%ld\n", n_nodes, num_edges);
   printf("start form node=%ld\n", start_node);
-  for(i = 0; i < n_end_nodes, ++i)printf("%d: to node=%ld\n", i, end_nodes[i]);
+  for(i = 0; i < n_end_nodes; ++i)printf("%d: to node=%ld\n", i, end_nodes[i]);
   printf("=================================================\n");
   
   //now use shottest path algorithm to get the result  
@@ -320,10 +324,10 @@ const char* NeuronTracing::find_shortest_path()
   {
     error = "error to create the Dijlstra class";
     cerr << error << endl;
-    if(n_end_nodes)
+    if(end_nodes)
     {
-      delete[] n_end_nodes; 
-      n_end_nodes = NULL;
+      delete[] end_nodes; 
+      end_nodes = NULL;
     }
     return error;
   }   
@@ -371,7 +375,7 @@ const char* NeuronTracing::find_shortest_path()
 
         if(j < 0)
         {
-          m_sec_unit.clear();
+          m_swc_unit.clear();
           error = "error happend: node less than 0 ";
           cerr << error << endl;
           break; 
@@ -379,7 +383,7 @@ const char* NeuronTracing::find_shortest_path()
 
         if(j != start_node)
         {
-          node_to_xyx(j, unit.x, unit.y, unit.z, nx, ny. nz, min_step);
+          node_to_xyz(j, unit.x, unit.y, unit.z, nx, ny, nz, min_step);
           unit.n = nexits + 1 + m_swc_unit.size();
           unit.pn = unit.n + 1;
           m_swc_unit.push_back(unit);
@@ -476,8 +480,8 @@ const char*  NeuronTracing::merge_traced_path()
         else //same node number not zero
         {
           if(same_node.x == node.x
-              && same_node.y = node.y
-              && same_node.z = node.z)
+              && same_node.y == node.y
+              && same_node.z == node.z)
           {
             same_node_num ++;
           }
@@ -590,7 +594,7 @@ bool compare(const NeuronSWC& a, const NeuronSWC& b)
 {
   return (a.r < b.r);
 }
-void NeuronTracing::smooth_radius(vector<NeuronSWC>& coord, int win_size, bool media_filter);
+void NeuronTracing::smooth_radius(vector<NeuronSWC>& coord, int win_size, bool media_filter)
 {
   vector<NeuronSWC> m_coord = coord; 
   V3DLONG size = coord.size();
@@ -797,7 +801,7 @@ void NeuronTracing::refit_position_and_radius(vector<NeuronSWC>& coord, bool mov
     {
       if(!move_position)
       {
-        radius = refit_radius(x, y, z, image_thresh, aver_r*2, in_xy_pannel_only);
+        radius = refit_radius(x, y, z, image_thresh, ave_r*2, in_xy_pannel_only);
       }    
       else
       {
@@ -825,7 +829,7 @@ void NeuronTracing::refit_position_and_radius(vector<NeuronSWC>& coord, bool mov
         for(j = 0; j < ITERATOR_COUNT; ++j)
         {
           refit_position(x, y, z, radius*2, diffs, image_thresh);
-          r = refit_radius(x, y, z, image_thresh, ave_r*2, in_xy_pannel_only); 
+          radius = refit_radius(x, y, z, image_thresh, ave_r*2, in_xy_pannel_only); 
         }
       }
     }
@@ -836,7 +840,7 @@ void NeuronTracing::refit_position_and_radius(vector<NeuronSWC>& coord, bool mov
   }
 }
 
-void NeuronTracing::rearrage_curve_index()
+void NeuronTracing::rearrange_curve_index()
 {
   vector< vector<NeuronSWC> > mm_swc_tmp = mm_swc_unit;
   V3DLONG i, j;
@@ -849,22 +853,22 @@ void NeuronTracing::rearrage_curve_index()
     for(j = 0; j < mm_swc_tmp[i].size(); ++j)
     {
       NeuronSWC v; 
-      set_swc_unit(v, n_max, mm_swc_tmp, j, true);
+      set_swc_unit(v, n_max, mm_swc_tmp[i], j, true);
       ne_seg.push_back(v);
     } 
     mm_swc_unit.push_back(ne_seg);
   }
 }
 
-V3DLONG NeuronTracing::get_max_n_num(vector< vector<NeuronSWC>& mm_swc)
+V3DLONG NeuronTracing::get_max_n_num(vector< vector<NeuronSWC> >& mm_swc)
 {
   V3DLONG i, j;
-  V3DLONG max_n = -1; 
+  V3DLONG max_n = 0; 
   for(i = 0; i < mm_swc.size(); ++i)
   {
     for(j = 0; j < mm_swc[i].size(); ++j)
     {
-      if(max_n < mm_swc[i][j].n) max_n = mm_swc[i][j].n
+      if(max_n < mm_swc[i][j].n) max_n = mm_swc[i][j].n;
     }
       
   }
@@ -872,8 +876,8 @@ V3DLONG NeuronTracing::get_max_n_num(vector< vector<NeuronSWC>& mm_swc)
 }
 void NeuronTracing::set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r)
 {
-  V3DLONG size = swc_unit.size();
-  v.type = 3;
+  V3DLONG size = swc_units.size();
+  v.type = 3;//dendratic
   v.x = swc_units[index].x;
   v.y = swc_units[index].y;
   v.z = swc_units[index].z;
@@ -881,11 +885,54 @@ void NeuronTracing::set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& s
   if(order)
   {
     v.n = num + index + 1;
-    v.pn = (i >= N-1) ? -1 : v.n+1;
+    v.pn = (index >= size-1) ? -1 : v.n+1;
   }
   else 
   {
     v.n = num + index + 1;
-    v.pn = (i <= 0) ? -1 : v.n + 1;
+    v.pn = (index <= 0) ? -1 : v.n + 1;
   }
+}
+void NeuronTracing::downsample_curve()
+{
+  vector< vector<NeuronSWC> > mm_swc_tmp = mm_swc_unit;
+  mm_swc_unit.clear();
+  vector<NeuronSWC> m_tmp_curve;
+  m_tmp_curve.clear();  
+  int i;
+  for(i = 0; i < mm_swc_tmp.size(); ++i)
+  {
+    m_tmp_curve = downsample(mm_swc_tmp[i], parameters->outsample_step);     
+    mm_swc_unit.push_back(m_tmp_curve);
+  }
+}
+
+void NeuronTracing::refit_pos_r_and_smooth_r(bool move_position, bool in_xy_pannel_only, bool media_filter)
+{
+  int i;
+  for(i = 0; i < mm_swc_unit.size(); ++i)
+  {
+    vector<NeuronSWC>& coord = mm_swc_unit[i];
+    refit_position_and_radius(coord, move_position, in_xy_pannel_only);
+    smooth_radius(coord, parameters->smooth_winsize, media_filter); 
+  }
+}
+
+void NeuronTracing::fetch_data_for_neurontree(QList<NeuronTree>& traced_nueron_trees)
+{
+  const QString filename = "traced_neurons.swc";
+  int i;
+  for(i = 0; i < mm_swc_unit.size(); ++i)
+  {
+    NeuronTree neurontree;
+    QList<NeuronSWC>& _listNeuron = neurontree.listNeuron;  
+    _listNeuron.clear();
+    int j;
+    for(j = 0; j < mm_swc_unit[i].size(); ++j)
+    {
+      _listNeuron.append(mm_swc_unit[i][j]);          
+    }
+    neurontree.file = filename;
+    traced_nueron_trees.append(neurontree);
+  }    
 }
