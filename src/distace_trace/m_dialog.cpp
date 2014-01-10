@@ -8,13 +8,15 @@
 #include "parameterdialog.h"
 #include <iostream>
 #include <QMessageBox>
+#include <QDebug>
 
 using namespace std;
 
-Dialog::Dialog(QWidget *parent) : QDialog(parent)
+Dialog::Dialog(V3DPluginCallback2* callback, QWidget *parent) : QDialog(parent), m_callback(callback)
 {
   this->setupUI();
   this->setupConnection();
+  this->updateImageList();
 }
 Dialog::~Dialog()
 {
@@ -66,7 +68,10 @@ void Dialog::updateImageList()
 {
   //get imagelist
   //update the combobox
+  if(!m_callback) return;
   v3dhandleList imageWindowList = this->m_callback->getImageWindowList();
+  qDebug() << imageWindowList.size();
+  qDebug() << m_callback->getImageName(imageWindowList[0]);
   int i;
   for(i = 0; i < imageWindowList.count(); i++)
   {
@@ -158,7 +163,7 @@ void Dialog::onOkButtonClicked()
   //rearrange the index 
   neuronTracing.rearrange_curve_index();
   //refit postion and radius and smooth the radius     
-  neuronTracing.refit_pos_r_and_smooth_r(false,
+  neuronTracing.refit_pos_r_and_smooth_r(true,
       m_callback->getGlobalSetting().b_3dcurve_width_from_xyonly, 
       false);
  //get all the neuronTree data 

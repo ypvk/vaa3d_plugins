@@ -75,7 +75,7 @@ void NeuronTracing::print_basic_info()
   printf("================================\n");
   printf("Image size : %ld %ld %ld\n", dimx, dimy, dimz);
   printf("zthickness: %f\n", zthickness);
-  printf("region: (%ld,%ld,%ld)->(%ld,%ld,%ld)", bx0, by0,bz0, bx1,by1,bz1);
+  printf("region: (%ld,%ld,%ld)->(%ld,%ld,%ld)\n", bx0, by0,bz0, bx1,by1,bz1);
   printf("================================\n");
 }
 NeuronTracing::~NeuronTracing(){}
@@ -119,7 +119,7 @@ inline V3DLONG NeuronTracing::node_from_xyz(float x, float y, float z, V3DLONG n
 inline void NeuronTracing::node_to_xyz(V3DLONG node, float& x, float& y, float& z, \
     V3DLONG nx, V3DLONG ny, V3DLONG nz, int step)
 {
-  z = node/(ny*nz);
+  z = node/(nx*ny);
   y = (node - (V3DLONG)z*ny*nx)/nx;
   x = node - (V3DLONG)z*ny*nx - (V3DLONG)y*nx;
 
@@ -221,7 +221,7 @@ const char* NeuronTracing::find_shortest_path()
   //set threshold
   double i_max = ImageUtils::getImageMaxValue(data, dimx, dimy, dimz);
   double i_ave = ImageUtils::getImageAveValue(data, dimx, dimy, dimz);
-  double i_std = ImageUtils::getImageStdValue(data, dimz, dimy, dimz);
+  double i_std = ImageUtils::getImageStdValue(data, dimx, dimy, dimz);
   
   double i_threshold = 0;
   if(background_select) i_threshold = (i_ave < i_std) ? i_ave : (i_ave + i_std) * 0.5;
@@ -291,6 +291,7 @@ const char* NeuronTracing::find_shortest_path()
           edge_list.push_back(edge);
           
           edge_index[node_a].push_back(edge_list.size() - 1);
+          edge_index[node_b].push_back(edge_list.size() - 1);
 
           num_edges++;
 
@@ -313,7 +314,7 @@ const char* NeuronTracing::find_shortest_path()
   // print the image value 
   printf("image ave=%g, std=%g, max=%g. chose %ld out of %ld links \n", i_ave, i_std, i_max, num_edges, all_count);
   printf("Node num=%ld, Edge num =%ld\n", n_nodes, num_edges);
-  printf("start form node=%ld\n", start_node);
+  printf("start from node=%ld\n", start_node);
   for(i = 0; i < n_end_nodes; ++i)printf("%d: to node=%ld\n", i, end_nodes[i]);
   printf("=================================================\n");
   
@@ -356,6 +357,7 @@ const char* NeuronTracing::find_shortest_path()
 
       while(true)
       {
+        
         V3DLONG jj = j;
         j = par_list[j];
         if(j == jj)
@@ -387,6 +389,7 @@ const char* NeuronTracing::find_shortest_path()
           unit.n = nexits + 1 + m_swc_unit.size();
           unit.pn = unit.n + 1;
           m_swc_unit.push_back(unit);
+          printf("node x y z id:%ld n:%ld %g %g %g\n", j, unit.n, unit.x, unit.y, unit.z);
         }
         else
         {
@@ -640,8 +643,8 @@ void NeuronTracing::smooth_radius(vector<NeuronSWC>& coord, int win_size, bool m
       int k;
       for(k = 0; k < win_unit.size(); ++k)
       {
-        radius += win_unit[i].r * win_dst[i];
-        sum += win_dst[i];
+        radius += win_unit[k].r * win_dst[k];
+        sum += win_dst[k];
       }
       if(sum > 0) radius /= sum; 
     }
@@ -662,6 +665,7 @@ double NeuronTracing::refit_radius(float x, float y, float z, double image_thres
   double index_r;
   for(index_r = 1; index_r <= max_radius; ++index_r)
   {
+    all_num = background_num = 0;
     double dx;
     double dy;
     double dz;
@@ -689,14 +693,18 @@ double NeuronTracing::refit_radius(float x, float y, float z, double image_thres
                 k < 0 || k > dimz)
               return index_r;
             
-            if(data[i + j*dimx + k*dimx*dimz] <= image_thresh)
+            if(data[i + j*dimx + k*dimx*dimy] <= image_thresh)
             {
               background_num++;
-              if(background_num / all_num > 0.001) return index_r;
+              if(background_num / all_num > 0.001) 
+              {
+                return index_r;
+              }
             }
           } 
         }
   }
+  return index_r;
 }
 
 void NeuronTracing::refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh)
@@ -751,6 +759,11 @@ void NeuronTracing::refit_position(float & x, float& y, float& z, double r, doub
       diff[0] /= len;
       diff[1] /= len;
       diff[2] /= len;
+
+
+      cx = cx - x;
+      cy = cy -y;
+      cz = cz - z;
 
       double tmp = cx * diff[0] + cy*diff[1] + cz*diff[2];
       

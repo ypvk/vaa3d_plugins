@@ -18,8 +18,8 @@ void NeuronPlugin::domenu(const QString & menu_name, V3DPluginCallback2 & callba
   if (menu_name == tr("Skeleton trace"))
   {
     //v3d_msg(tr("on going!!"));
-    Dialog* m_dialog = new Dialog(); 
-    m_dialog->setCallback(&callback);
+    Dialog* m_dialog = new Dialog(&callback); 
+    //m_dialog->setCallback(&callback);
     m_dialog->exec();
     delete m_dialog;
   }

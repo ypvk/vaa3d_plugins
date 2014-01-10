@@ -14,5 +14,5 @@ SET(PLUGIN_HEADERS
 	parameterdialog.h	
 	tracing_function.h
 	)
-CONFIGE_V3D_PLUGIN(neuronplugin)
+CONFIGE_V3D_PLUGIN(dis_neuronplugin)
 	

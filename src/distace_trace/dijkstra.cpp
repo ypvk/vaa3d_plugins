@@ -2,6 +2,7 @@
 #include <map>
 #include <vector>
 #include <memory.h>
+#include <iostream>
 
 using namespace std;
 
@@ -95,7 +96,7 @@ void Dijkstra::decreaseKey(V3DLONG v, double _dist)
     p = heap_size;
   }
   int fa;
-  while(p > 1 && dist[heap[p]] < dist[heap[fa= p << 1]])
+  while(p > 1 && dist[heap[p]] < dist[heap[fa = p >> 1]])
   {
     heap_index[heap[fa]] = p;
     heap_index[heap[p]] = fa;
@@ -118,7 +119,11 @@ void Dijkstra::search(V3DLONG start)
     for(i = 0; i < edge_for_node.size(); ++i)
     {
       V3DLONG index = edge_for_node[i];
-      V3DLONG to_node = (*edge_list)[index].second; 
+      V3DLONG to_node;
+      if (node == (*edge_list)[index].first)
+        to_node = (*edge_list)[index].second;
+      else
+        to_node = (*edge_list)[index].first;
       if(!is_visited[to_node] && dist[to_node] > dist[node] + (*weight_list)[index])
       {
         (*parent_list)[to_node] = node;
@@ -144,7 +149,11 @@ void Dijkstra::search(V3DLONG start, V3DLONG end)
     for(i = 0; i < edge_for_node.size(); ++i)
     {
       V3DLONG index = edge_for_node[i];
-      V3DLONG to_node = (*edge_list)[index].second;
+      V3DLONG to_node;
+      if (node == (*edge_list)[index].first)
+        to_node = (*edge_list)[index].second;
+      else
+        to_node = (*edge_list)[index].first;
       if(!is_visited[to_node] && dist[to_node] > dist[node] + (*weight_list)[index])
       {
         (*parent_list)[to_node] = node;
