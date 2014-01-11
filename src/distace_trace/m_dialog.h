@@ -8,6 +8,7 @@
 class QPushButton;
 class QComboBox;
 class QLabel;
+class QTextEdit;
 
 class Dialog : public QDialog
 {
@@ -26,6 +27,7 @@ class Dialog : public QDialog
     void setupUI();
     void setupConnection();
     void saveNeuronSWCData();
+    void selfLog(const QString& text);
   protected:
     void closeEvent(QCloseEvent* event);
   private:
@@ -35,7 +37,8 @@ class Dialog : public QDialog
     QLabel* m_imageLabel;
     QComboBox* m_imageList;
     V3DPluginCallback2* m_callback;
-
+    
+    QTextEdit* m_logEdit;
     QList<NeuronTree> m_traced_neurons;
 };
 #endif

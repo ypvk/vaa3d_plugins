@@ -428,13 +428,14 @@ const char*  NeuronTracing::merge_traced_path()
   if (num_path < 2) return NULL;
   vector< vector<NeuronSWC> > new_swc_units_all;
   vector< NeuronSWC> swc_units;  
+  swc_units.clear();
 
-  vector<V3DLONG> index_start;
-  vector<V3DLONG> index_use; 
+  vector<V3DLONG> index_start(num_path);
+  vector<V3DLONG> index_use(num_path); 
   int i;
   for(i = 0; i < num_path; ++i)
   {
-    index_start[i] = mm_swc_unit.size() - 1;
+    index_start[i] = mm_swc_unit[i].size() - 1;
     index_use[i] = index_start[i];
   }
   
@@ -529,7 +530,7 @@ const char*  NeuronTracing::merge_traced_path()
         {
           cout << "add one branch to the new branch lists " << path << ":" << index_start[path] << "-" 
             << index_use[path] << endl;
-          for(ii = index_start[ii]; ii >= index_use[ii]; --ii)
+          for(ii = index_start[path]; ii >= index_use[path]; --ii)
           {
             same_node = mm_swc_unit[path][ii];
             nexits++;
@@ -858,17 +859,71 @@ void NeuronTracing::rearrange_curve_index()
   vector< vector<NeuronSWC> > mm_swc_tmp = mm_swc_unit;
   V3DLONG i, j;
   mm_swc_unit.clear();
-  for(i = 0; i < mm_swc_tmp.size(); ++i)
+  if(n_end_nodes == 1) // for end nodes less then 2
   {
-    V3DLONG n_max = get_max_n_num(mm_swc_unit);
+    for(i = 0; i < mm_swc_tmp.size(); ++i)
+    {
+      V3DLONG n_max = get_max_n_num(mm_swc_unit);
+      vector<NeuronSWC> ne_seg;
+      ne_seg.clear();
+      for(j = 0; j < mm_swc_tmp[i].size(); ++j)
+      {
+        NeuronSWC v; 
+        set_swc_unit(v, n_max, mm_swc_tmp[i], j, true);
+        ne_seg.push_back(v);
+      } 
+      mm_swc_unit.push_back(ne_seg);
+    }
+  }
+  else //for end nodes more than 1 merge all the path to one neurontree
+  {
+    vector<NeuronSWC> cross_nodes;
+    cross_nodes.clear();
     vector<NeuronSWC> ne_seg;
     ne_seg.clear();
-    for(j = 0; j < mm_swc_tmp[i].size(); ++j)
+    for(i = 0; i < mm_swc_tmp.size(); ++i)
     {
-      NeuronSWC v; 
-      set_swc_unit(v, n_max, mm_swc_tmp[i], j, true);
-      ne_seg.push_back(v);
-    } 
+      V3DLONG n_max = get_max_n_num(ne_seg);
+      //get the new start n_max
+      V3DLONG index_start = 0; 
+      V3DLONG delta = 0;
+      if(cross_nodes.size() > 0)
+      {
+        for(j = cross_nodes.size() - 1; j >= 0; --j)
+        {
+          if(cross_nodes[j].x == mm_swc_tmp[i][0].x
+              &&cross_nodes[j].y == mm_swc_tmp[i][0].y
+              &&cross_nodes[j].z == mm_swc_tmp[i][0].z)
+          {
+            if(mm_swc_tmp[i].size() > 2)
+            {
+              //set the new start unit
+              NeuronSWC v = mm_swc_tmp[i][1];
+              v.pn = cross_nodes[j].n;
+              v.r = 1.0;
+              v.n = n_max + 1;
+              v.type = 3;
+              ne_seg.push_back(v);
+              index_start = 2;
+              delta = 1;
+            }
+            else
+            {
+              index_start = 1;
+              delta = 1;
+            }
+          } 
+        }
+      }
+      for(j = index_start; j < mm_swc_tmp[i].size(); ++j)
+      {
+        NeuronSWC v; 
+        set_swc_unit(v, n_max, mm_swc_tmp[i], j-delta, false);
+        ne_seg.push_back(v);
+      } 
+      if(mm_swc_tmp[i].size() > 1)
+        cross_nodes.push_back(mm_swc_tmp[i][mm_swc_tmp[i].size()-1]);
+    }
     mm_swc_unit.push_back(ne_seg);
   }
 }
@@ -887,6 +942,14 @@ V3DLONG NeuronTracing::get_max_n_num(vector< vector<NeuronSWC> >& mm_swc)
   }
   return max_n;
 }
+V3DLONG NeuronTracing::get_max_n_num(vector< NeuronSWC > & m_swcs)
+{
+  V3DLONG i;
+  V3DLONG max_n = 0;
+  for(i = 0; i < m_swcs.size(); ++i)
+    if(max_n < m_swcs[i].n) max_n = m_swcs[i].n;
+  return max_n;
+}
 void NeuronTracing::set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r)
 {
   V3DLONG size = swc_units.size();
@@ -903,7 +966,7 @@ void NeuronTracing::set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& s
   else 
   {
     v.n = num + index + 1;
-    v.pn = (index <= 0) ? -1 : v.n + 1;
+    v.pn = (index <= 0) ? -1 : v.n - 1;
   }
 }
 void NeuronTracing::downsample_curve()
@@ -933,7 +996,7 @@ void NeuronTracing::refit_pos_r_and_smooth_r(bool move_position, bool in_xy_pann
 
 void NeuronTracing::fetch_data_for_neurontree(QList<NeuronTree>& traced_nueron_trees)
 {
-  const QString filename = "traced_neurons.swc";
+  const QString filename = "traced_neurons";
   int i;
   for(i = 0; i < mm_swc_unit.size(); ++i)
   {

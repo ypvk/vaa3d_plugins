@@ -74,6 +74,7 @@ class NeuronTracing
         bool in_xy_pannel_only);
     void refit_position(float & x, float& y, float& z, double r, double* diff, double image_thresh);
     V3DLONG get_max_n_num(vector< vector<NeuronSWC> >& mm_swc);
+    V3DLONG get_max_n_num(vector<NeuronSWC>& m_swcs);
     void set_swc_unit(NeuronSWC& v, V3DLONG num, vector<NeuronSWC>& swc_units, V3DLONG index, bool order, double r=1);
     vector<NeuronSWC> downsample(const vector<NeuronSWC>& coord, int step); 
   private:

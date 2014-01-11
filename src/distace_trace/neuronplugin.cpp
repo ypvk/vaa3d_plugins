@@ -18,10 +18,10 @@ void NeuronPlugin::domenu(const QString & menu_name, V3DPluginCallback2 & callba
   if (menu_name == tr("Skeleton trace"))
   {
     //v3d_msg(tr("on going!!"));
-    Dialog* m_dialog = new Dialog(&callback); 
+    //add the parent so that the dialog will be released  when the parent is released
+    Dialog* m_dialog = new Dialog(&callback/*, (QWidget*)callback.getVaa3DMainWindow()*/); 
     //m_dialog->setCallback(&callback);
-    m_dialog->exec();
-    delete m_dialog;
+    m_dialog->show();
   }
   else if (menu_name == tr("about this plugin"))
   {

@@ -2,6 +2,7 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTextEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "tracing_function.h"
@@ -29,27 +30,27 @@ void Dialog::setupUI()
   this->m_saveButton = new QPushButton(tr("Save"), this);
   this->m_imageLabel = new QLabel(tr("Image"), this);
   this->m_imageList = new QComboBox(this);
+  this->m_logEdit = new QTextEdit(this);
   
   QVBoxLayout* mainLayout = new QVBoxLayout();
   QHBoxLayout* imageLayout = new QHBoxLayout();
   QHBoxLayout* buttonLayout = new QHBoxLayout();
-  QHBoxLayout* saveButtonLayout = new QHBoxLayout();
   
   imageLayout->addWidget(this->m_imageLabel);
   imageLayout->addWidget(this->m_imageList);
   
   buttonLayout->addWidget(this->m_okButton);
   buttonLayout->addWidget(this->m_cancelButton);
+  buttonLayout->addStretch(0.5);
+  buttonLayout->addWidget(this->m_saveButton);
 
-  saveButtonLayout->addStretch(0.5);
-  saveButtonLayout->addWidget(this->m_saveButton);
-  
   mainLayout->addLayout(imageLayout);
   mainLayout->addLayout(buttonLayout);
-  mainLayout->addLayout(saveButtonLayout);
+  mainLayout->addWidget(m_logEdit);
 
   this->setLayout(mainLayout); 
   this->setWindowTitle("Neuron Trace Plugin");
+  this->resize(600, 400);
 }
 
 void Dialog::setupConnection()
@@ -81,12 +82,14 @@ void Dialog::updateImageList()
 
 void Dialog::onOkButtonClicked()
 {
+  selfLog("===============================================");
   int index = this->m_imageList->currentIndex();
   v3dhandle image_window = this->m_callback->getImageWindowList()[index];
   Image4DSimple* image = this->m_callback->getImage(image_window);
   //run the function
   LandmarkList landmarkList = this->m_callback->getLandmark(image_window);
   Parameters para; 
+  selfLog("setup parameterdialog");
   ParameterDialog parameterDialog(this, landmarkList.size(), image->getCDim());
   if(parameterDialog.exec() != QDialog::Accepted)
   {
@@ -94,6 +97,7 @@ void Dialog::onOkButtonClicked()
     return;    
   }  
   //now simplly add two node, then add multinode function
+  selfLog("Get the parameter");
   parameterDialog.getData(para);
   const LocationSimple& startLandMark = landmarkList.at(parameterDialog.getStartNodeIndex());
   int start_node_index = parameterDialog.getStartNodeIndex();
@@ -133,6 +137,7 @@ void Dialog::onOkButtonClicked()
     z[i] = endLandMark.z;
   } 
   //creating the NeuronTracing object
+  selfLog("Begion create the Algorithm Object");
   NeuronTracing neuronTracing(data, 
       image->getXDim(), image->getYDim(), image->getZDim(),
       1.0, 0, 0, 0, image->getXDim() - 1, image->getYDim() - 1, image->getZDim() - 1, 
@@ -142,7 +147,9 @@ void Dialog::onOkButtonClicked()
   const char* error = neuronTracing.find_shortest_path(); 
   if (error != NULL)
   {
-    cout << "run the find_shortest_path function error" << endl;
+    //cout << "run the find_shortest_path function error" << endl;
+    selfLog("run the find_shortest_path function error");
+    selfLog(error);
     return;
   }
   if (n_end_nodes >= 2)
@@ -150,27 +157,43 @@ void Dialog::onOkButtonClicked()
     error = neuronTracing.merge_traced_path();
     if (error != NULL)
     {
-      cout << "run the merge function error" << endl;
+      selfLog("run the merge function error");
+      selfLog(error);
       return;
     }
   }
   else
   {
     //TODO add some additional action
+    //do nothing
   }
   //downsample the curve
+  selfLog("downsample the curve");
   neuronTracing.downsample_curve();  
   //rearrange the index 
+  selfLog("rearrange_curve_index");
   neuronTracing.rearrange_curve_index();
   //refit postion and radius and smooth the radius     
+  selfLog("refit the position and smooth the radius");
   neuronTracing.refit_pos_r_and_smooth_r(true,
       m_callback->getGlobalSetting().b_3dcurve_width_from_xyonly, 
       false);
  //get all the neuronTree data 
+  selfLog("get the data");
   neuronTracing.fetch_data_for_neurontree(m_traced_neurons); 
+  //update the 3d Image window to see the result
+  for(i = 0; i < m_traced_neurons.size(); ++i)
+  {
+    m_callback->setSWC(image_window, m_traced_neurons[i]);
+  } 
+  selfLog("update on 3D view");
+  m_callback->open3DWindow(image_window);  
+  m_callback->pushObjectIn3DWindow(image_window);
+  selfLog("===============================================");
 }
 void Dialog::onCancelButtonClicked()
 {
+  m_traced_neurons.clear();
   this->reject();
 }
 
@@ -185,7 +208,8 @@ void Dialog::closeEvent(QCloseEvent* event)
   {
     QMessageBox::StandardButton ret_button = QMessageBox::question(this, 
         tr("Question"),
-        tr("You have traced data, will you save them?")
+        tr("You have traced data, will you save them?"),
+        (QMessageBox::Ok | QMessageBox::Cancel)
       );    
     if(ret_button == QMessageBox::Ok)
     {
@@ -194,6 +218,7 @@ void Dialog::closeEvent(QCloseEvent* event)
     }
     else
     {
+      m_traced_neurons.clear();
       event->accept();
     }
   }
@@ -213,10 +238,19 @@ void Dialog::onSaveButtonClicked()
 
 void Dialog::saveNeuronSWCData()
 {
+
   int i;
   for(i = 0; i < m_traced_neurons.size(); ++i)
   {
-    writeSWC_file(m_traced_neurons[i].file, m_traced_neurons[i]);   
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
+        QString("%1_%2").arg(m_traced_neurons[i].file).arg(i),
+        tr("SWC (*.swc)"));
+    writeSWC_file(filename, m_traced_neurons[i]);   
+    selfLog(QString("save file %1").arg(filename));
   }
   m_traced_neurons.clear();
+}
+void Dialog::selfLog(const QString& text)
+{
+  m_logEdit->append(text); 
 }
