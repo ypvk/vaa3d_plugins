@@ -934,7 +934,7 @@ void NeuronTracing::rearrange_curve_index()
         ne_seg.push_back(v);
       } 
       if(mm_swc_tmp[i].size() > 1)
-        cross_nodes.push_back(mm_swc_tmp[i][mm_swc_tmp[i].size()-1]);
+        cross_nodes.push_back(ne_seg[ne_seg.size() - 1]);
     }
     mm_swc_unit.push_back(ne_seg);
   }
