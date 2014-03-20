@@ -28,15 +28,27 @@ EdgeTable  edge_table[13] =
 	{0,0,1, 1,1,0, sqrt(3.0)},
 };
 
-inline double metric_function(double value, double max_v)
+static inline double metric_function(double value, double max_v)
 {
   double tmp = 1 - value/max_v;
   return exp((tmp*tmp)*10);
 }
-inline double edge_weight(double dist, double va, double vb, double max_v)
+static inline double edge_weight(double dist, double va, double vb, double max_v)
 {
   double value = 0.5*(metric_function(va, max_v) + metric_function(vb, max_v));
 
+  const double step = 1e-5;
+  return dist * value * step;
+}
+static inline double metric_function_v1(double value_a, double value_b, double max_v)
+{
+  double tmp = 1 - ((value_a - value_b)*(value_a - value_b))/(max_v*max_v);
+  double alpha = 10;
+  return exp(alpha*tmp);
+}
+static inline double edge_weight_v1(double dist, double value_a, double value_b, double max_v)
+{
+  double value = metric_function_v1(value_a, value_b, max_v);
   const double step = 1e-5;
   return dist * value * step;
 }
@@ -284,7 +296,7 @@ const char* NeuronTracing::find_shortest_path()
           if (value_a < i_threshold || value_b < i_threshold)
             continue; //skip the background value
           
-          Weight weight = edge_weight(edge_table[it].dist, value_a, value_b, 255);
+          Weight weight = edge_weight_v1(edge_table[it].dist, value_a, value_b, 255);
           weight_list.push_back(weight);
 
           Edge edge = Edge(node_a, node_b);

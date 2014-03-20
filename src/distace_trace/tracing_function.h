@@ -37,8 +37,8 @@ struct Parameters
   int background_select;
   Parameters()
   {
-    node_step = 3;
-    outsample_step = 1;
+    node_step = 2;
+    outsample_step = 2;
     smooth_winsize = 5;
     edge_select = 0;
     background_select = 1;   
@@ -104,6 +104,8 @@ class NeuronTracing
     const Parameters* parameters;
 };
  
-inline double metric_function(double value, double max_v=255.0);
-inline double edge_weight(double dist, double va, double vb, double max_v=255.0);
+static inline double metric_function(double value, double max_v=255.0);
+static inline double edge_weight(double dist, double va, double vb, double max_v=255.0);
+static inline double metric_function_v1(double value_a, double value_b, double max_v=255.0);
+static inline double edge_weight_v1(double dist, double value_a, double value_b, double max_v=255.0);
 #endif /*trancing_function.h*/
